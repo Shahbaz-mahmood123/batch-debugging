@@ -5,7 +5,7 @@ DESCRIPTION = 'A tower sdk'
 LONG_DESCRIPTION = 'A package that makes it easier to debug issues with batch compute enviornments in GCP, AWS and Azure'
 
 setup(
-    name="convsn",
+    name="tower_sdk",
     version=VERSION,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
