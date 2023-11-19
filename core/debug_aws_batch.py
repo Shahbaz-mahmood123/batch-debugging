@@ -109,7 +109,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: The decoded user data.
         """
-        print(response)
         try:
             launch_template_data = response['LaunchTemplateVersions'][0]['LaunchTemplateData']
             user_data_base64 = launch_template_data.get('UserData', '')
@@ -128,7 +127,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: The extracted and decoded user data.
         """
-        print(lt_id)
         try:
             response = self.get_launch_template(lt_id)
             #print(response)
