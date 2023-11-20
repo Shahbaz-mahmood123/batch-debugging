@@ -1,7 +1,7 @@
 import boto3
 
 class AWSBatchClientWrapperInterface:
-    def get_job_queue(self, queue_name: str):
+    def get_job_queue(self, queue_name: str) -> dict:
         pass
 
     def get_batch_compute_env(self, compute_env: str):
@@ -17,7 +17,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
         """
         self.batch_client = batch_client
 
-    def get_job_queue(self, queue_name: str):
+    def get_job_queue(self, queue_name: str) -> dict:
         """
         Get information about an AWS Batch job queue.
 

@@ -1,5 +1,6 @@
 import base64
 import boto3
+import json
 from core.client import AuthenticatedTowerClient
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
@@ -22,6 +23,9 @@ class DebugAWSBatchInterface:
         pass
 
     def get_user_data_from_launch_template(self, launch_template_id: list) -> str:
+        pass
+    
+    def get_job_queue_status(self, job_queue_id: str) -> str:
         pass
 
 class DebugAWSBatch(DebugAWSBatchInterface):
@@ -159,3 +163,30 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             user_data.append(response)
         return user_data
         
+        
+    def get_job_queue_status(self, job_queue_id: str) -> str:
+        """ 
+        returns the current status a job queue in AWS Batch
+        Args:
+            job_queue_id (str): the ID of the job queue you want to chekc
+        Returns:
+            str: The current status of the job queue and any tasks running 
+            in the job queue
+        """
+        
+        try:
+            job_queue_response = self.aws_batch_client_wrapper.get_job_queue(job_queue_id)
+            job_queue_info = job_queue_response.get('jobQueues', [])
+
+            if job_queue_info:
+                job_queue_info = job_queue_info[0]  
+                arn = job_queue_info.get('jobQueueArn', '')
+                state = job_queue_info.get('state', '')
+                status = job_queue_info.get('status', '')
+                status_and_state = (f"Job Queue arn: {arn}, State: {state}, Status: {status}")
+                return status_and_state
+            else:
+                return ('error getting job queue:' + job_queue_response)
+
+        except Exception as e:
+            return str(e)
