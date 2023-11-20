@@ -4,7 +4,7 @@ class AWSBatchClientWrapperInterface:
     def get_job_queue(self, queue_name: str) -> dict:
         pass
 
-    def get_batch_compute_env(self, compute_env: str):
+    def get_batch_compute_env(self, compute_env: str) -> dict:
         pass
 
 class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
@@ -34,7 +34,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             print(f"An error occurred while retrieving job queue: {str(e)}")
             return None
 
-    def get_batch_compute_env(self, compute_env: list):
+    def get_batch_compute_env(self, compute_env: list) -> dict:
         """
         Get information about an AWS Batch compute environment.
 
@@ -45,7 +45,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             dict or None: Information about the compute environment or None in case of an error.
         """
         try:
-            response = self.batch_client.describe_compute_environments(computeEnvironments=compute_env)
+            response = self.batch_client.describe_compute_environments(computeEnvironments=[compute_env])
             return response
         except Exception as e:
             print(f"An error occurred while retrieving compute environment: {str(e)}")

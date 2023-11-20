@@ -27,6 +27,12 @@ class DebugAWSBatchInterface:
     
     def get_job_queue_status(self, job_queue_id: str) -> str:
         pass
+    
+    def get_compute_env_status(self, compute_env_id: str) -> str:
+        pass
+    
+    def get_autoscaling_activityse(self, autoscaling_group_id: str) -> str:
+        pass
 
 class DebugAWSBatch(DebugAWSBatchInterface):
     def __init__(self, authenticated_tower_client: AuthenticatedTowerClient):
@@ -190,3 +196,43 @@ class DebugAWSBatch(DebugAWSBatchInterface):
 
         except Exception as e:
             return str(e)
+        
+        
+    def get_compute_env_status(self, compute_env_id: str) -> str:
+        """ Get the current status of a compute enviornment
+
+        Args:
+            compute_env_id (str): ID of an AWS batch compute env ID
+
+        Returns:
+            str: The current status of AWS batch compute env
+        """
+        
+        try: 
+            aws_batch_ce_response = self.aws_batch_client_wrapper.get_batch_compute_env(compute_env_id)
+          
+            ce_info =  aws_batch_ce_response.get('computeEnvironments', [])
+            
+            if ce_info:
+                ce_info = ce_info[0]
+                state = ce_info.get('state', '')
+                status = ce_info.get('status', '')
+                arn = ce_info.get('computeEnvironmentArn', '')
+                status_and_state = (f"Job Queue arn: {arn}, State: {state}, Status: {status}")
+                return status_and_state
+        except Exception as e:
+            return str(e)
+        
+    def get_autoscaling_activity(self, autoscaling_group_id: str) -> str:
+        """ Get autoscaling group activity details.
+
+        Args:
+            autoscaling_group_id (str): ID of autoscaling group in EC2.
+
+        Returns:
+            str: returns acitvity details of an autoscaling group in
+        """
+        pass
+        
+    
+    
