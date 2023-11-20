@@ -5,6 +5,7 @@ from core.client import AuthenticatedTowerClient
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
 from core.compute_envs import SeqeraComputeEnvsWrapper
+from core.autoscaling import AutoscalingWrapper
 
 class DebugAWSBatchInterface:
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
@@ -31,7 +32,7 @@ class DebugAWSBatchInterface:
     def get_compute_env_status(self, compute_env_id: str) -> str:
         pass
     
-    def get_autoscaling_activityse(self, autoscaling_group_id: str) -> str:
+    def get_autoscaling_activity(self, autoscaling_group_id: str) -> str:
         pass
 
 class DebugAWSBatch(DebugAWSBatchInterface):
@@ -49,6 +50,9 @@ class DebugAWSBatch(DebugAWSBatchInterface):
 
         ec2_client = boto3.client('ec2', region_name='us-east-1')
         self.ec2_client_wrapper = EC2ClientWrapper(ec2_client)
+        
+        autoscaling_client = boto3.client ('autoscaling', region_name='us-east-1')
+        self.autoscaling_wrapper = AutoscalingWrapper(autoscaling_client)
 
         self.seqera_compute_envs_wrapper = SeqeraComputeEnvsWrapper(self.authenticated_tower_client)
 
@@ -232,7 +236,11 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: returns acitvity details of an autoscaling group in
         """
-        pass
+        try: 
+            response = self.autoscaling_wrapper.get_autoscaling_activity(autoscaling_group_id)
+            return response
+        except Exception as e:
+            return(f'An error occured when fetching the autoscaling group' + str(e))
         
     
     
