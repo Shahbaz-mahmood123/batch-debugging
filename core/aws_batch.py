@@ -50,3 +50,17 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
         except Exception as e:
             print(f"An error occurred while retrieving compute environment: {str(e)}")
             return None
+
+    def compare_auto_scaling_group(api_response, target_string):
+        auto_scaling_groups = api_response.get('AutoScalingGroups', [])
+        
+        for group in auto_scaling_groups:
+            auto_scaling_group_name = group.get('AutoScalingGroupName', '')
+            
+            # Compare the AutoScalingGroupName up to the point where "work" appears
+            if auto_scaling_group_name.startswith(target_string):
+                print(f"Match found for {target_string}")
+                # You can perform additional actions here if needed
+                break
+        else:
+            print(f"No match found for {target_string}")

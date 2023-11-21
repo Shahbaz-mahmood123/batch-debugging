@@ -237,10 +237,10 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             str: returns acitvity details of an autoscaling group in
         """
         try: 
-            response = self.autoscaling_wrapper.get_autoscaling_activity(autoscaling_group_id)
+            response = self.autoscaling_wrapper.get_all_autoscaling_groups(autoscaling_group_id)
             return response
         except Exception as e:
-            return(f'An error occured when fetching the autoscaling group' + str(e))
+            return(f'An error occured when fetching the autoscaling group ' + str(e))
         
     
     

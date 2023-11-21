@@ -1,7 +1,7 @@
 
 class AutoscalingWrapperInterface():
 
-    def get_autoscaling_activity(self):
+    def get_all_autoscaling_groups(self):
      pass
 
 
@@ -15,12 +15,26 @@ class AutoscalingWrapper(AutoscalingWrapperInterface):
         """
         self.autoscaling_client = autoscaling_client
     
+    def compare_auto_scaling_group(self, list_of_autoscaling_groups: dict, compute_env_id: str) -> str:
+        auto_scaling_groups = list_of_autoscaling_groups.get('AutoScalingGroups', [])
+        
+        for group in auto_scaling_groups:
+            auto_scaling_group = group.get('AutoScalingGroupName', '')
+            
+            # Compare the AutoScalingGroupName up to the point where "work" appears
+            if auto_scaling_group.startswith(compute_env_id):
+                print(f"Match found for {compute_env_id}")
+                return group
+                # You can perform additional actions here if needed
+                break
+        else:
+            print(f"No match found for {compute_env_id}")
     
-    def get_autoscaling_activity(self, autoscaling_group_id: str) -> str:
+    def get_all_autoscaling_groups(self, autoscaling_group_id: str) -> str:
         try:
-            # autoscaling_activity = self.autoscaling_client.describe_scaling_activities(autoscaling_group_id)
-            # return autoscaling_activity
-            auto_scaling_groups = self.autoscaling_client.describe_auto_scaling_groups(AutoScalingGroupNames=[autoscaling_group_id])
-            return auto_scaling_groups
+            auto_scaling_groups = self.autoscaling_client.describe_auto_scaling_groups()
+            matching_autoscaling_group = self.compare_auto_scaling_group(auto_scaling_groups, autoscaling_group_id)
+            return matching_autoscaling_group
         except Exception as e:
-            return(f'An error occured getting the autoscaling group' + str(e))
+            return(f'An error occured getting all the autoscaling groups' + str(e))
+        
