@@ -11,7 +11,7 @@ class DebugAWSBatchInterface:
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
         pass
 
-    def get_aws_batch_compute_env_launch_template_id(self, compute_env: list) -> list:
+    def get_aws_batch_compute_env_launch_template_id(self, compute_env: str) -> list:
         pass
 
     def get_launch_template(self, lt_id: dict) -> dict:
@@ -32,8 +32,13 @@ class DebugAWSBatchInterface:
     def get_compute_env_status(self, compute_env_id: str) -> str:
         pass
     
-    def get_autoscaling_activity(self, autoscaling_group_id: str) -> str:
+    def get_autoscaling_group(self, autoscaling_group_id: str) -> str:
         pass
+    
+    def get_scaling_activities(self, autoscaling_group: dict) -> dict:
+        pass
+    
+    
 
 class DebugAWSBatch(DebugAWSBatchInterface):
     def __init__(self, authenticated_tower_client: AuthenticatedTowerClient):
@@ -74,12 +79,12 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         modified_id_list = [f'ShahbazCompute-{env_id}-head' for env_id in compute_envs_id_list]
         return modified_id_list
 
-    def get_aws_batch_compute_env_launch_template_id(self, compute_env: list) -> list:
+    def get_aws_batch_compute_env_launch_template_id(self, compute_env: str) -> list:
         """
         Get the launch template ID for an AWS Batch compute environment.
 
         Args:
-            compute_env (list): The name of the compute environment in the seqera platform.
+            compute_env (str): The name of the compute environment in the seqera platform.
 
         Returns:
             list: The launch templates ID.
@@ -227,20 +232,29 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         except Exception as e:
             return str(e)
         
-    def get_autoscaling_activity(self, autoscaling_group_id: str) -> str:
-        """ Get autoscaling group activity details.
+    def get_autoscaling_group(self, autoscaling_group_id: str) -> str:
+        """ Get autoscaling group.
 
         Args:
             autoscaling_group_id (str): ID of autoscaling group in EC2.
 
         Returns:
-            str: returns acitvity details of an autoscaling group in
+            str: returns autoscaling group object.
         """
         try: 
             response = self.autoscaling_wrapper.get_all_autoscaling_groups(autoscaling_group_id)
             return response
         except Exception as e:
             return(f'An error occured when fetching the autoscaling group ' + str(e))
-        
     
+    def get_scaling_activities(self, autoscaling_group: dict) -> dict:
+        
+        if autoscaling_group:
+            autoscaling_group_name = autoscaling_group.get("AutoScalingGroupName")
+            print(autoscaling_group_name)
+            scaling_activities = self.autoscaling_wrapper.get_scaling_activities(autoscaling_group_name)
+            return scaling_activities
+        else:
+            return("Please pass in a valid autoscaling group object")
+            
     

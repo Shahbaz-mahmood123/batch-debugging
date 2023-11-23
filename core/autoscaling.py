@@ -3,6 +3,10 @@ class AutoscalingWrapperInterface():
 
     def get_all_autoscaling_groups(self):
      pass
+ 
+    
+    def get_scaling_activities(self, autoscaling_group_name: str) -> dict:
+        pass
 
 
 class AutoscalingWrapper(AutoscalingWrapperInterface):
@@ -25,8 +29,6 @@ class AutoscalingWrapper(AutoscalingWrapperInterface):
             if auto_scaling_group.startswith(compute_env_id):
                 print(f"Match found for {compute_env_id}")
                 return group
-                # You can perform additional actions here if needed
-                break
         else:
             print(f"No match found for {compute_env_id}")
     
@@ -37,4 +39,12 @@ class AutoscalingWrapper(AutoscalingWrapperInterface):
             return matching_autoscaling_group
         except Exception as e:
             return(f'An error occured getting all the autoscaling groups' + str(e))
+        
+        
+    def get_scaling_activities(self, autoscaling_group_name: str) -> dict:
+        try:
+            scaling_activity = self.autoscaling_client.describe_scaling_activities(AutoScalingGroupName=autoscaling_group_name)
+            return scaling_activity
+        except Exception as e:
+            return(f'An error occured getting the scaling activities for {autoscaling_group_name}' + str(e))
         
