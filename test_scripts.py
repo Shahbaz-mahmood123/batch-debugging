@@ -38,4 +38,8 @@ debug_aws_batch = DebugAWSBatch(authenticated_client)
 # print(launch_template_id)
 ## returns the user data of the launch template
 # test = debug_aws_batch.get_user_data_from_launch_template(launch_template_id)
-# print(test)
+#print(test)
+
+##Get launch template:
+# launch_template_userdata = debug_aws_batch.extract_and_decode_user_data(test)
+# print(launch_template_userdata)
