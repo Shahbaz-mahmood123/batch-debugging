@@ -131,6 +131,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             str: The decoded user data.
         """
         try:
+            # TODO: Get the latest version of launch template. 
             launch_template_data = launch_template[0]['LaunchTemplateVersions'][0]['LaunchTemplateData']
             user_data_base64 = launch_template_data.get('UserData', '')
             print(user_data_base64)
