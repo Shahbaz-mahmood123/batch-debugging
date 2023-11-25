@@ -71,7 +71,14 @@ pip install batch-debugging
 <!-- GETTING STARTED -->
 ## Getting Started
 
-To start using this library, first import the client for Seqera platform and initalize it:
+To start using this library, first set the enviornment variables for the platform and the token:
+
+```sh 
+export PLATFORM_TOKEN=
+export PLATFORM_URL=
+```
+
+Then import the client for Seqera platform and initalize it:
 
 ```python 
 from core.client import AuthenticatedPlatformClient
