@@ -39,6 +39,8 @@ class DebugAWSBatchInterface:
         pass
     
     
+    
+    
 
 class DebugAWSBatch(DebugAWSBatchInterface):
     def __init__(self, authenticated_tower_client: AuthenticatedPlatformClient):
@@ -118,19 +120,21 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         for response in response_iterator:
             return response
 
-    def extract_and_decode_user_data(self, response: dict) -> str:
+    def extract_and_decode_user_data(self, launch_template: dict) -> str:
         """
         Extract and decode user data from an AWS Launch Template response.
 
         Args:
-            response (dict): The AWS Launch Template response.
+            launch_template (dict): The AWS Launch Template response.
 
         Returns:
             str: The decoded user data.
         """
         try:
-            launch_template_data = response['LaunchTemplateVersions'][0]['LaunchTemplateData']
+            # TODO: Get the latest version of launch template. 
+            launch_template_data = launch_template[0]['LaunchTemplateVersions'][0]['LaunchTemplateData']
             user_data_base64 = launch_template_data.get('UserData', '')
+            print(user_data_base64)
             user_data_decoded = base64.b64decode(user_data_base64).decode('utf-8')
             return user_data_decoded
         except Exception as e:
