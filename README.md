@@ -26,18 +26,18 @@
   <ol>
     <li>
       <a href="#about-the-project">About The Project</a>
-      <ul>
+      <!-- <ul>
         <li><a href="#built-with">Built With</a></li>
-      </ul>
+      </ul> -->
     </li>
     <li>
-      <a href="#installation">Getting Started</a>
+      <a href="#installation">Installation</a>
       <ul>
-        <li><a href="#getting-started">Installation</a></li>
+        <li><a href="#getting-started">Getting Started</a></li>
         <!-- <li><a href="#prerequisites">Prerequisites</a></li> -->
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
+    <!-- <li><a href="#usage">Usage</a></li> -->
     <!-- <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li> -->
@@ -102,3 +102,9 @@ This is an example of how to list things you need to use the software and how to
   npm install npm@latest -g
   ```
  -->
+
+ ## Contact
+
+Shahbaz Mahmood -  shahbazmahmooood@gmail.com
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
