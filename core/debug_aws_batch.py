@@ -1,11 +1,11 @@
 import base64
 import boto3
 import json
-from core.client import AuthenticatedTowerClient
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
 from core.compute_envs import SeqeraComputeEnvsWrapper
 from core.autoscaling import AutoscalingWrapper
+from core.client import AuthenticatedPlatformClient
 
 class DebugAWSBatchInterface:
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
@@ -41,12 +41,12 @@ class DebugAWSBatchInterface:
     
 
 class DebugAWSBatch(DebugAWSBatchInterface):
-    def __init__(self, authenticated_tower_client: AuthenticatedTowerClient):
+    def __init__(self, authenticated_tower_client: AuthenticatedPlatformClient):
         """
         Initializes the DebugAWSBatch class.
 
         Args:
-            authenticated_tower_client (AuthenticatedTowerClient): An instance of AuthenticatedTowerClient.
+            authenticated_tower_client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
         self.authenticated_tower_client = authenticated_tower_client
 
@@ -227,7 +227,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 state = ce_info.get('state', '')
                 status = ce_info.get('status', '')
                 arn = ce_info.get('computeEnvironmentArn', '')
-                status_and_state = (f"Job Queue arn: {arn}, State: {state}, Status: {status}")
+                status_and_state = (f"Compute enviornment arn: {arn}, State: {state}, Status: {status}")
                 return status_and_state
         except Exception as e:
             return str(e)
