@@ -1,4 +1,3 @@
-from client.nextflow_tower_api_client.client import AuthenticatedClient, Client
 from core.debug_aws_batch import DebugAWSBatch
 from core.client import AuthenticatedPlatformClient
 
@@ -11,8 +10,8 @@ debug_aws_batch = DebugAWSBatch(authenticated_client)
 
 
 #Get autoscaling group 
-autoscaling_group = debug_aws_batch.get_autoscaling_group("ShahbazCompute-2zHxdiwhxTzkM1SUjNkThy-work")
-print(autoscaling_group)
+# autoscaling_group = debug_aws_batch.get_autoscaling_group("ShahbazCompute-2zHxdiwhxTzkM1SUjNkThy-work")
+# print(autoscaling_group)
 
 ##Get autoscaling group activity
 # autoscaling_activity = debug_aws_batch.get_scaling_activities(autoscaling_group=autoscaling_group)
