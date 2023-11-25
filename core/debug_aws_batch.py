@@ -134,7 +134,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             # TODO: Get the latest version of launch template. 
             launch_template_data = launch_template[0]['LaunchTemplateVersions'][0]['LaunchTemplateData']
             user_data_base64 = launch_template_data.get('UserData', '')
-            print(user_data_base64)
             user_data_decoded = base64.b64decode(user_data_base64).decode('utf-8')
             return user_data_decoded
         except Exception as e:
@@ -152,9 +151,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """
         try:
             response = self.get_launch_template(lt_id)
-            #print(response)
             #user_data = self.extract_and_decode_user_data(response)
-            #print(user_data)
             return response
         except Exception as e:
             return str(e)
@@ -255,7 +252,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         
         if autoscaling_group:
             autoscaling_group_name = autoscaling_group.get("AutoScalingGroupName")
-            print(autoscaling_group_name)
             scaling_activities = self.autoscaling_wrapper.get_scaling_activities(autoscaling_group_name)
             return scaling_activities
         else:
