@@ -13,7 +13,11 @@ setup(
     author_email="shahbazmahmooood@gmail.com",
     license='MIT',
     packages=find_packages(),
-    install_requires=[],
+    install_requires=[
+        'httpx',
+        'attrs',
+        'boto3'
+        ],
     keywords='conversion',
     classifiers= [
         "Development Status :: 3 - Alpha",
