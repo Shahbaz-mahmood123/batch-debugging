@@ -1,7 +1,7 @@
 from client.nextflow_tower_api_client import AuthenticatedClient
 from client.nextflow_tower_api_client.api.default import list_compute_envs
 from client.nextflow_tower_api_client.models.list_compute_envs_response import ListComputeEnvsResponse
-from core.client import AuthenticatedTowerClient
+from core.client import AuthenticatedPlatformClient
 
 class SeqeraComputeEnvsWrapperInterface:
     def list_compute_envs(self, workspace_id: int, status: str) -> list:
@@ -11,12 +11,12 @@ class SeqeraComputeEnvsWrapperInterface:
         pass
 
 class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
-    def __init__(self, client: AuthenticatedTowerClient):
+    def __init__(self, client: AuthenticatedPlatformClient):
         """
         Initializes the SeqeraComputeEnvsWrapper class.
 
         Args:
-            client (AuthenticatedTowerClient): An instance of AuthenticatedTowerClient.
+            client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
         self.client = client
 
