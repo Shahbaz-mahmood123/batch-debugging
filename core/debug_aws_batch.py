@@ -1,7 +1,6 @@
 import base64
 import boto3
-from botocore.exceptions import NoCredentialsError
-import json
+
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
 from core.compute_envs import SeqeraComputeEnvsWrapper
