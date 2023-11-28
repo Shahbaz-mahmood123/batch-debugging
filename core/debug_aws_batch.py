@@ -1,11 +1,12 @@
 import base64
 import boto3
-import json
+
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
 from core.compute_envs import SeqeraComputeEnvsWrapper
 from core.autoscaling import AutoscalingWrapper
 from core.client import AuthenticatedPlatformClient
+from core.ecs import ECSWrapper
 
 class DebugAWSBatchInterface:
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
@@ -38,10 +39,9 @@ class DebugAWSBatchInterface:
     def get_scaling_activities(self, autoscaling_group: dict) -> dict:
         pass
     
+    def get_ecs_cluster(self, compute_env_id: str) -> dict:
+        pass
     
-    
-    
-
 class DebugAWSBatch(DebugAWSBatchInterface):
     def __init__(self, authenticated_tower_client: AuthenticatedPlatformClient):
         """
@@ -52,6 +52,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """
         self.authenticated_tower_client = authenticated_tower_client
 
+        #TODO: Remember to remove the region name from the clients, this is just for testing. 
         batch_client = boto3.client('batch', region_name='us-east-1')
         self.aws_batch_client_wrapper = AWSBatchClientWrapper(batch_client)
 
@@ -61,6 +62,9 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         autoscaling_client = boto3.client ('autoscaling', region_name='us-east-1')
         self.autoscaling_wrapper = AutoscalingWrapper(autoscaling_client)
 
+        ecs_client = boto3.client('ecs', region_name='us-east-1') 
+        self.ecs_wrapper = ECSWrapper(ecs_client)
+        
         self.seqera_compute_envs_wrapper = SeqeraComputeEnvsWrapper(self.authenticated_tower_client)
 
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
@@ -134,7 +138,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             # TODO: Get the latest version of launch template. 
             launch_template_data = launch_template[0]['LaunchTemplateVersions'][0]['LaunchTemplateData']
             user_data_base64 = launch_template_data.get('UserData', '')
-            print(user_data_base64)
             user_data_decoded = base64.b64decode(user_data_base64).decode('utf-8')
             return user_data_decoded
         except Exception as e:
@@ -152,9 +155,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """
         try:
             response = self.get_launch_template(lt_id)
-            #print(response)
             #user_data = self.extract_and_decode_user_data(response)
-            #print(user_data)
             return response
         except Exception as e:
             return str(e)
@@ -169,8 +170,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: The extracted and decoded user data.
         """
-        
-        
         user_data = []
         
         if not isinstance(launch_template_ids, list):
@@ -191,8 +190,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: The current status of the job queue and any tasks running 
             in the job queue
-        """
-        
+        """    
         try:
             job_queue_response = self.aws_batch_client_wrapper.get_job_queue(job_queue_id)
             job_queue_info = job_queue_response.get('jobQueues', [])
@@ -220,7 +218,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Returns:
             str: The current status of AWS batch compute env
         """
-        
         try: 
             aws_batch_ce_response = self.aws_batch_client_wrapper.get_batch_compute_env(compute_env_id)
           
@@ -255,10 +252,25 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         
         if autoscaling_group:
             autoscaling_group_name = autoscaling_group.get("AutoScalingGroupName")
-            print(autoscaling_group_name)
             scaling_activities = self.autoscaling_wrapper.get_scaling_activities(autoscaling_group_name)
             return scaling_activities
         else:
             return("Please pass in a valid autoscaling group object")
+        
+    def get_ecs_cluster(self, compute_env_id: str) -> dict:
+        """Retrives an ecs cluster object based on a aws batch compute enviornment id.
+
+        Args:
+            compute_env_id (str): The ID of a compute enviornment in AWS Batch.
+
+        Returns:
+            dict: Returns ECS cluster object that is the result of boto3.ecsClient.describe_clusters
+        """
+        if compute_env_id:
+            try: 
+                ecs_cluster = self.ecs_wrapper.get_ecs_cluster(compute_env_id)
+                return ecs_cluster
+            except Exception as e:
+                print("An error occured retrieving the ECS Cluster") 
             
     
