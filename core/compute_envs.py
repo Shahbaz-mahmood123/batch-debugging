@@ -72,7 +72,22 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         else:
             print("Please ensure the compute env ID is valid")
             
+    def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
+        """
+        Get a list of Tower compute environment IDs.
 
-                
+        Args:
+            workspace_id (str): The Seqera platform workspace ID.
+            status (str): The status of compute environments to filter.
+
+        Returns:
+            list: A list of compute environment IDs.
+        """
+        compute_envs = self.list_compute_envs(workspace_id, status)
+        compute_envs_id_list = self.get_compute_env_id(compute_envs)
+
+        # Add "TowerForge-" prefix and "-head" suffix to each element in the list, changed for convinience
+        modified_id_list = [f'ShahbazCompute-{env_id}-head' for env_id in compute_envs_id_list]
+        return modified_id_list
             
     
