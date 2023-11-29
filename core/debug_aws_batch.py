@@ -200,7 +200,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 arn = job_queue_info.get('jobQueueArn', '')
                 state = job_queue_info.get('state', '')
                 status = job_queue_info.get('status', '')
-                status_and_state = (f"Job Queue arn: {arn}, State: {state}, Status: {status}")
+                status_and_state = {'jobQueueArn': arn, "jobQueueState": state, "jobQueueStatus": status }
                 return status_and_state
             else:
                 return ('error getting job queue:' + job_queue_response)
@@ -228,7 +228,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 state = ce_info.get('state', '')
                 status = ce_info.get('status', '')
                 arn = ce_info.get('computeEnvironmentArn', '')
-                status_and_state = (f"Compute enviornment arn: {arn}, State: {state}, Status: {status}")
+                status_and_state = {'computeEnviornmentArn': arn, "computeEnviornmentState": state, "computeEnviornmnetStatus0": status }
                 return status_and_state
         except Exception as e:
             return str(e)
@@ -269,7 +269,10 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         if compute_env_id:
             try: 
                 ecs_cluster = self.ecs_wrapper.get_ecs_cluster(compute_env_id)
-                return ecs_cluster
+                if ecs_cluster is None:
+                    return "No clusters found"
+                else:
+                    return ecs_cluster
             except Exception as e:
                 print("An error occured retrieving the ECS Cluster") 
             
