@@ -15,7 +15,7 @@ class SeqeraComputeEnvsWrapperInterface:
         pass 
 
 class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
-    def __init__(self, client: AuthenticatedPlatformClient, workspace_id=None):
+    def __init__(self, client: AuthenticatedPlatformClient):
         """
         Initializes the SeqeraComputeEnvsWrapper class.
 
@@ -23,9 +23,9 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
         self.client = client
-        self.workspace_id = workspace_id or os.getenv('WORKSPACE_ID')
-        if not self.workspace_id:
-            raise ValueError("Please set the WORKSAPCE_ID in your enviornment variables")
+        # self.workspace_id = workspace_id or os.getenv('WORKSPACE_ID')
+        # if not self.workspace_id:
+        #     raise ValueError("Please set the WORKSAPCE_ID in your enviornment variables")
 
 
     def list_compute_envs(self, workspace_id: int, status: str) -> list:
@@ -65,9 +65,9 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             print(f"Error while getting compute environment IDs: {str(e)}")
             return []
         
-    def get_compute_env(self, compute_env_id: str) -> dict:
+    def get_compute_env(self, compute_env_id: str, workspace_id) -> dict:
         if compute_env_id:
-            compute_env = describe_compute_env.sync(client=self.client, compute_env_id=compute_env_id, workspace_id=self.workspace_id)
+            compute_env = describe_compute_env.sync(client=self.client, compute_env_id=compute_env_id, workspace_id=workspace_id)
             return compute_env
         else:
             print("Please ensure the compute env ID is valid")
