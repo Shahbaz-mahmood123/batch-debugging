@@ -43,15 +43,13 @@ class DebugAWSBatchInterface:
         pass
     
 class DebugAWSBatch(DebugAWSBatchInterface):
-    def __init__(self, authenticated_tower_client: AuthenticatedPlatformClient):
+    def __init__(self):
         """
         Initializes the DebugAWSBatch class.
 
         Args:
             authenticated_tower_client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
-        self.authenticated_tower_client = authenticated_tower_client
-
         #TODO: Remember to remove the region name from the clients, this is just for testing. 
         batch_client = boto3.client('batch', region_name='us-east-1')
         self.aws_batch_client_wrapper = AWSBatchClientWrapper(batch_client)
@@ -65,25 +63,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         ecs_client = boto3.client('ecs', region_name='us-east-1') 
         self.ecs_wrapper = ECSWrapper(ecs_client)
         
-        self.seqera_compute_envs_wrapper = SeqeraComputeEnvsWrapper(self.authenticated_tower_client)
-
-    def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
-        """
-        Get a list of Tower compute environment IDs.
-
-        Args:
-            workspace_id (str): The Seqera platform workspace ID.
-            status (str): The status of compute environments to filter.
-
-        Returns:
-            list: A list of compute environment IDs.
-        """
-        compute_envs = self.seqera_compute_envs_wrapper.list_compute_envs(workspace_id, status)
-        compute_envs_id_list = self.seqera_compute_envs_wrapper.get_compute_env_id(compute_envs)
-        
-        # Add "TowerForge-" prefix and "-head" suffix to each element in the list
-        modified_id_list = [f'ShahbazCompute-{env_id}-head' for env_id in compute_envs_id_list]
-        return modified_id_list
 
     def get_aws_batch_compute_env_launch_template_id(self, compute_env: str) -> list:
         """
@@ -200,7 +179,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 arn = job_queue_info.get('jobQueueArn', '')
                 state = job_queue_info.get('state', '')
                 status = job_queue_info.get('status', '')
-                status_and_state = (f"Job Queue arn: {arn}, State: {state}, Status: {status}")
+                status_and_state = {'jobQueueArn': arn, "jobQueueState": state, "jobQueueStatus": status }
                 return status_and_state
             else:
                 return ('error getting job queue:' + job_queue_response)
@@ -228,7 +207,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 state = ce_info.get('state', '')
                 status = ce_info.get('status', '')
                 arn = ce_info.get('computeEnvironmentArn', '')
-                status_and_state = (f"Compute enviornment arn: {arn}, State: {state}, Status: {status}")
+                status_and_state = {'computeEnviornmentArn': arn, "computeEnviornmentState": state, "computeEnviornmnetStatus0": status }
                 return status_and_state
         except Exception as e:
             return str(e)
@@ -269,7 +248,10 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         if compute_env_id:
             try: 
                 ecs_cluster = self.ecs_wrapper.get_ecs_cluster(compute_env_id)
-                return ecs_cluster
+                if ecs_cluster is None:
+                    return "No clusters found"
+                else:
+                    return ecs_cluster
             except Exception as e:
                 print("An error occured retrieving the ECS Cluster") 
             
