@@ -1,3 +1,5 @@
+import os
+import uuid
 
 from google.cloud import batch_v1
 
@@ -8,20 +10,19 @@ class GCPBatchInterface():
     
 class GCPBatch(GCPBatchInterface):
     
-    def __init__(self, batch_client, project_id: str, region: str, job_name: str):
+    def __init__(self):
         """
         Initializes the gcp_batch class.
 
         Args:
             batch_client: An instance of the GCP Batch client.
         """
-        self.batch_client = batch_client
-        self.project_id = project_id
-        self.region = region
-        self.job_name = job_name
+        self.project_id = os.getenv("GCP_PROJECT_ID")
+        self.region = os.getenv("GCP_REGION") 
+        self.batch_client = batch_v1.BatchServiceClient()
     
     #https://cloud.google.com/batch/docs/create-run-basic-job#create-basic-container-job
-    def create_test_job(self) -> batch_v1.Job:
+    def create_test_job(self, job_name: str) -> batch_v1.Job:
         runnable = batch_v1.Runnable()
         runnable.container = batch_v1.Runnable.Container()
         runnable.container.image_uri = "gcr.io/google-containers/busybox"
@@ -69,7 +70,7 @@ class GCPBatch(GCPBatchInterface):
 
         create_request = batch_v1.CreateJobRequest()
         create_request.job = job
-        create_request.job_id = "batch-debugging-1"
+        create_request.job_id = job_name+"-"+str(uuid.uuid4())
         # The job's parent is the region in which the job will run
         create_request.parent = f"projects/{self.project_id}/locations/{self.region}"
 
