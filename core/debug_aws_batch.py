@@ -79,7 +79,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         compute_env_list = []
         
         compute_env_list = self.aws_batch_client_wrapper.get_batch_compute_env(compute_env)
-        
         launch_template_id_list = []
         for compute_environment in compute_env_list.get("computeEnvironments", []):
             launch_template = compute_environment.get("computeResources", {}).get("launchTemplate", {})
@@ -154,7 +153,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         if not isinstance(launch_template_ids, list):
             # If launch_template_ids is not a list, wrap it in a list to handle single string inputs.
             launch_template_ids = [launch_template_ids]
-            
         for id in launch_template_ids:
             response = self.get_and_extract_user_data(id)
             user_data.append(response)
@@ -228,11 +226,32 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             return(f'An error occured when fetching the autoscaling group ' + str(e))
     
     def get_scaling_activities(self, autoscaling_group: dict) -> dict:
-        
+        """Gets the first 5 activities for an autoscaling group
+
+        Args:
+            autoscaling_group (dict): Expects a boto3 autoscaling group object
+
+        Returns:
+            dict: Returns the 5 most recent autoscaling group activities
+        """
         if autoscaling_group:
             autoscaling_group_name = autoscaling_group.get("AutoScalingGroupName")
             scaling_activities = self.autoscaling_wrapper.get_scaling_activities(autoscaling_group_name)
-            return scaling_activities
+            num_of_activities = len(next(iter(scaling_activities.values())))
+            if num_of_activities > 0:
+                scaling_activities['Activities'] = [
+                    {k: v for k, v in activity.items() if k not in {"AutoScalingGroupName", "ActivityId", "AutoScalingGroupARN"}}
+                    for activity in scaling_activities['Activities']
+                ]
+                first_5_activities = []
+                if num_of_activities > 5:
+                    counter = 0
+                    for activity in scaling_activities['Activities']:  
+                        counter+=1 
+                        if counter > 5:
+                            return first_5_activities
+                        first_5_activities.append(activity)
+                return scaling_activities
         else:
             return("Please pass in a valid autoscaling group object")
         
