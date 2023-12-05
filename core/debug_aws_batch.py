@@ -1,5 +1,6 @@
 import base64
 import boto3
+import os
 
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
@@ -42,6 +43,15 @@ class DebugAWSBatchInterface:
     def get_ecs_cluster(self, compute_env_id: str) -> dict:
         pass
     
+    def get_running_jobs(self, job_queue_id: str) -> dict:
+        pass
+    
+    def get_succeeded_jobs(self, job_queue_id: str) -> dict:
+        pass
+
+# TODO: Need to refactor some of this code, right now we assume ECS, Batch and the ASGs have the same initial name
+# for example TowerForge-someid-head, I should get the ARNS for the various service objects from the API calls made via
+# boto 3
 class DebugAWSBatch(DebugAWSBatchInterface):
     def __init__(self):
         """
@@ -50,17 +60,18 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Args:
             authenticated_tower_client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
-        #TODO: Remember to remove the region name from the clients, this is just for testing. 
-        batch_client = boto3.client('batch', region_name='us-east-1')
+        region = os.getenv("AWS_REGION")
+        
+        batch_client = boto3.client('batch', region_name=region)
         self.aws_batch_client_wrapper = AWSBatchClientWrapper(batch_client)
 
-        ec2_client = boto3.client('ec2', region_name='us-east-1')
+        ec2_client = boto3.client('ec2', region_name=region)
         self.ec2_client_wrapper = EC2ClientWrapper(ec2_client)
         
-        autoscaling_client = boto3.client ('autoscaling', region_name='us-east-1')
+        autoscaling_client = boto3.client ('autoscaling', region_name=region)
         self.autoscaling_wrapper = AutoscalingWrapper(autoscaling_client)
 
-        ecs_client = boto3.client('ecs', region_name='us-east-1') 
+        ecs_client = boto3.client('ecs', region_name=region) 
         self.ecs_wrapper = ECSWrapper(ecs_client)
         
 
@@ -171,7 +182,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         try:
             job_queue_response = self.aws_batch_client_wrapper.get_job_queue(job_queue_id)
             job_queue_info = job_queue_response.get('jobQueues', [])
-
             if job_queue_info:
                 job_queue_info = job_queue_info[0]  
                 arn = job_queue_info.get('jobQueueArn', '')
@@ -197,7 +207,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """
         try: 
             aws_batch_ce_response = self.aws_batch_client_wrapper.get_batch_compute_env(compute_env_id)
-          
             ce_info =  aws_batch_ce_response.get('computeEnvironments', [])
             
             if ce_info:
@@ -273,5 +282,29 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                     return ecs_cluster
             except Exception as e:
                 print("An error occured retrieving the ECS Cluster") 
+                
+    def get_running_jobs(self, job_queue_id: str) -> dict:
+        if job_queue_id: 
+            try: 
+                jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='RUNNING')
+                return jobs
+            except Exception as e:
+                return f"An error occured fetching the job queue: {e}"
+    
+    def get_succeeded_jobs(self, job_queue_id: str) -> dict:
+        if job_queue_id: 
+            try: 
+                jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='SUCCEEDED')
+                return jobs
+            except Exception as e:
+                return f"An error occured fetching the job queue: {e}"
+    
+    def get_failed_jobs(self, job_queue_id: str) -> dict:
+        if job_queue_id: 
+            try: 
+                jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='FAILED')
+                return jobs
+            except Exception as e:
+                return f"An error occured fetching the job queue: {e}"
             
     

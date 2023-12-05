@@ -6,6 +6,11 @@ class AWSBatchClientWrapperInterface:
 
     def get_batch_compute_env(self, compute_env: str) -> dict:
         pass
+    
+    def get_jobs(self, job_queue_id: str) -> dict:
+        pass
+    
+    
 
 class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
     def __init__(self, batch_client):
@@ -64,3 +69,25 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
                 break
         else:
             print(f"No match found for {target_string}")
+    
+    #https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch/client/list_jobs.html
+    def get_jobs(self, job_queue_id: str, job_status: str) -> dict:
+        """ Get the five most recent jobs from a specified job queue. 
+
+        Args:
+            job_queue_id (str): The job queue name or fully qualified  AWS arn.
+            job_status   (str): The status of the job to retrieve. Accepted values: 
+                                'SUBMITTED'|'PENDING'|'RUNNABLE'|'STARTING'|'RUNNING'|'SUCCEEDED'|'FAILED'
+        Returns:
+            dict: returns 5 most recent jobs.
+        """
+        try:
+            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, maxResults=50, jobStatus=job_status)
+            job_summary_list = job_response.get("jobSummaryList", [])
+            if job_summary_list == []:
+                return f"No jobs with the status of {job_status} found"
+        except Exception as e:
+            return ["An error occured fetching the running jobs:", e] 
+        return job_response
+            
+        
