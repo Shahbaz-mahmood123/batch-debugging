@@ -1,6 +1,7 @@
 import base64
 import boto3
 import os
+import botocore 
 
 from core.ec2 import EC2ClientWrapper
 from core.aws_batch import AWSBatchClientWrapper
@@ -60,6 +61,8 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         Args:
             authenticated_tower_client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
         """
+        # self.validate_aws_credentials()
+        
         region = os.getenv("AWS_REGION")
         
         batch_client = boto3.client('batch', region_name=region)
@@ -75,6 +78,19 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         self.ecs_wrapper = ECSWrapper(ecs_client)
         
 
+    # def validate_aws_credentials(self):
+    #     """
+    #     Validate AWS credentials.
+
+    #     Raises:
+    #         ValueError: If AWS credentials are not valid.
+    #     """
+    #     try:
+    #         sts = boto3.client('sts')
+    #         sts.get_caller_identity()
+    #     except botocore.exceptions.ClientError:
+    #         raise ValueError("AWS credentials are not valid. Please ensure your AWS credentials are valid.")
+    
     def get_aws_batch_compute_env_launch_template_id(self, compute_env: str) -> list:
         """
         Get the launch template ID for an AWS Batch compute environment.
@@ -191,7 +207,6 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 return status_and_state
             else:
                 return ('error getting job queue:' + job_queue_response)
-
         except Exception as e:
             return str(e)
         
@@ -303,6 +318,14 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         if job_queue_id: 
             try: 
                 jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='FAILED')
+                return jobs
+            except Exception as e:
+                return f"An error occured fetching the job queue: {e}"
+            
+    def get_runnable_jobs(self, job_queue_id: str) -> dict:
+        if job_queue_id: 
+            try: 
+                jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='RUNNABLE')
                 return jobs
             except Exception as e:
                 return f"An error occured fetching the job queue: {e}"
