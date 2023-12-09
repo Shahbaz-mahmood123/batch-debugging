@@ -1,12 +1,8 @@
-# python_sdk
-[![LinkedIn][linkedin-shield]][https://www.linkedin.com/in/shahbaz-mahmood-660a76166/]
-
-
-
+# Batch Debugging
 <h3 align="center">batch_debugging</h3>
 
   <p align="center">
-    A python library that assists in debugging batch compute enviornments in AWS, GCP and Azure and Kubernetes
+    A Python library crafted to simplify the debugging of batch compute environments across AWS, GCP, Azure, and Kubernetes.
     <br />
     <a href="https://github.com/Shahbaz-mahmood123/batch-debugging"><strong>Explore the docs »</strong></a>
     <br />
@@ -52,9 +48,8 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-A python library that assists in debugging batch compute enviornments in AWS, GCP and Azure and Kubernetes. Currently only supports AWS Batch but this will be extended to include other cloud enviornment. 
+A Python library designed to streamline the debugging of batch compute environments in AWS, GCP, Azure, and Kubernetes. Currently, it exclusively supports AWS Batch, with plans for future extensions to encompass other cloud environments. While presently tailored for compute environments built using the Seqera platform in AWS Batch, a more universal debugging tool is envisioned for future implementation.
 
-Additionally currently assumes your compute enviornments in AWS batch were built using Seqera platform but a more standard debugging tool will eventually be implemented.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -66,39 +61,74 @@ To use this library, just install the package via pip.
 pip install batch-debugging
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 <!-- GETTING STARTED -->
 ## Getting Started
 
-To start using this library, first set the enviornment variables for the platform and the token:
+### AWS
+To start using this library for AWS, first set the enviornment variables for the provider you would like to use:
+To use the aws fuctionality the below enviornment variable is needed:
 
 ```sh 
-export PLATFORM_TOKEN=
-export PLATFORM_URL=
+export AWS_REGION=$AWS_REGION
+```
+The relevant IAM permissions needed:
+```
+Coming soon
+```
+### GCP
+
+To use the GCP functionality please set the below enviornment variables"
+
+```sh 
+export GCP_PROJECT_ID=$GCP_PROJECT_ID
+export GCP_REGION=$GCP_REGION
 ```
 
-Then import the client for Seqera platform and initalize it:
-
-```python 
-from core.client import AuthenticatedPlatformClient
-
-authenticated_client = AuthenticatedPlatformClient()
-
+The relevant IAM permissions needed:
+```
+Coming soon
 ```
 
-The only current usable class is the DebugAWSBatch class. Here is an example script:
+### Azure
+
+Usage guide Coming soon
+
+The relevant IAM permissions needed:
+```
+Coming soon
+```
+
+### Seqera platform
+
+To use the Seqera platform Fuctionality please set the below enviornemnt variables
+
+```sh 
+export PLATFORM_TOKEN=$PLATFORM_TOKEN
+export PLATFORM_URL=$PLATFORM_URL
+```
+
+## Example script:
+
+here is an example script using the DebugAWSBatch class:
 
 ```python
 
 from core.debug_aws_batch import DebugAWSBatch
-from core.client import AuthenticatedPlatformClient
 
-authenticated_client = AuthenticatedPlatformClient()
+debug_aws_batch = DebugAWSBatch()
 
-def fetch_compute_enviornment_status(compute_enviornment_name: str) -> None
-    compute_env_status = debug_aws_batch.get_compute_env_status(compute_enviornment_name)
-    print(compute_env_status)
+def fetch_compute_autoscaling_group_activity(compute_env_id: str) -> dict
+    try:
+      autoscaling_group = debug_aws_batch.get_autoscaling_group(compute_env_id)
+
+      if autoscaling_group == None:
+        return ["Could not fetch the autoscaling group"]
+
+      autoscaling_activity = debug_aws_batch.get_scaling_activities(autoscaling_group)
+      return autoscaling_activity
+
+    except Exception as e:
+      return ["An error occured retrieving the running and failed jobs"]
 ```
 
 <!-- ### Prerequisites
