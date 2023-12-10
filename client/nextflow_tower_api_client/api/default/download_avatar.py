@@ -13,8 +13,6 @@ from ...types import File, Response
 def _get_kwargs(
     avatar_id: str,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/avatars/{avatarId}".format(

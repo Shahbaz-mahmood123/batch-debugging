@@ -14,8 +14,6 @@ def _get_kwargs(
     run_name: Union[Unset, None, str] = UNSET,
     session_id: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["runName"] = run_name
 

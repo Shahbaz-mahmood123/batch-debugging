@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Type, TypeVar, Union
+from typing import Any, Dict, List, Type, TypeVar, Union, cast
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
@@ -6,11 +6,11 @@ from attrs import field as _attrs_field
 from ..models.visibility import Visibility
 from ..types import UNSET, Unset
 
-T = TypeVar("T", bound="OrgAndWorkspaceDbDto")
+T = TypeVar("T", bound="OrgAndWorkspaceDto")
 
 
 @_attrs_define
-class OrgAndWorkspaceDbDto:
+class OrgAndWorkspaceDto:
     """
     Attributes:
         org_id (Union[Unset, int]):
@@ -20,6 +20,7 @@ class OrgAndWorkspaceDbDto:
         workspace_name (Union[Unset, str]):
         workspace_full_name (Union[Unset, str]):
         visibility (Union[Unset, Visibility]):
+        roles (Union[Unset, List[str]]):
     """
 
     org_id: Union[Unset, int] = UNSET
@@ -29,6 +30,7 @@ class OrgAndWorkspaceDbDto:
     workspace_name: Union[Unset, str] = UNSET
     workspace_full_name: Union[Unset, str] = UNSET
     visibility: Union[Unset, Visibility] = UNSET
+    roles: Union[Unset, List[str]] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -41,6 +43,10 @@ class OrgAndWorkspaceDbDto:
         visibility: Union[Unset, str] = UNSET
         if not isinstance(self.visibility, Unset):
             visibility = self.visibility.value
+
+        roles: Union[Unset, List[str]] = UNSET
+        if not isinstance(self.roles, Unset):
+            roles = self.roles
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -59,6 +65,8 @@ class OrgAndWorkspaceDbDto:
             field_dict["workspaceFullName"] = workspace_full_name
         if visibility is not UNSET:
             field_dict["visibility"] = visibility
+        if roles is not UNSET:
+            field_dict["roles"] = roles
 
         return field_dict
 
@@ -84,7 +92,9 @@ class OrgAndWorkspaceDbDto:
         else:
             visibility = Visibility(_visibility)
 
-        org_and_workspace_db_dto = cls(
+        roles = cast(List[str], d.pop("roles", UNSET))
+
+        org_and_workspace_dto = cls(
             org_id=org_id,
             org_name=org_name,
             org_logo_url=org_logo_url,
@@ -92,10 +102,11 @@ class OrgAndWorkspaceDbDto:
             workspace_name=workspace_name,
             workspace_full_name=workspace_full_name,
             visibility=visibility,
+            roles=roles,
         )
 
-        org_and_workspace_db_dto.additional_properties = d
-        return org_and_workspace_db_dto
+        org_and_workspace_dto.additional_properties = d
+        return org_and_workspace_dto
 
     @property
     def additional_keys(self) -> List[str]:

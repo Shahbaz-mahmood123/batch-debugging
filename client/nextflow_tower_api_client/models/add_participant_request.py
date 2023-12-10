@@ -12,46 +12,46 @@ T = TypeVar("T", bound="AddParticipantRequest")
 class AddParticipantRequest:
     """
     Attributes:
+        user_name_or_email (Union[Unset, str]):
         team_id (Union[Unset, int]):
         member_id (Union[Unset, int]):
-        user_name_or_email (Union[Unset, str]):
     """
 
+    user_name_or_email: Union[Unset, str] = UNSET
     team_id: Union[Unset, int] = UNSET
     member_id: Union[Unset, int] = UNSET
-    user_name_or_email: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        user_name_or_email = self.user_name_or_email
         team_id = self.team_id
         member_id = self.member_id
-        user_name_or_email = self.user_name_or_email
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
         field_dict.update({})
+        if user_name_or_email is not UNSET:
+            field_dict["userNameOrEmail"] = user_name_or_email
         if team_id is not UNSET:
             field_dict["teamId"] = team_id
         if member_id is not UNSET:
             field_dict["memberId"] = member_id
-        if user_name_or_email is not UNSET:
-            field_dict["userNameOrEmail"] = user_name_or_email
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
+        user_name_or_email = d.pop("userNameOrEmail", UNSET)
+
         team_id = d.pop("teamId", UNSET)
 
         member_id = d.pop("memberId", UNSET)
 
-        user_name_or_email = d.pop("userNameOrEmail", UNSET)
-
         add_participant_request = cls(
+            user_name_or_email=user_name_or_email,
             team_id=team_id,
             member_id=member_id,
-            user_name_or_email=user_name_or_email,
         )
 
         add_participant_request.additional_properties = d

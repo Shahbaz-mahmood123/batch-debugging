@@ -14,8 +14,6 @@ def _get_kwargs(
     *,
     role: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["role"] = role
 

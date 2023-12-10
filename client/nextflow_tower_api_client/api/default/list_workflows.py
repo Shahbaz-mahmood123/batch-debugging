@@ -19,8 +19,6 @@ def _get_kwargs(
     offset: Union[Unset, None, int] = UNSET,
     search: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     json_attributes: Union[Unset, None, List[str]] = UNSET
     if not isinstance(attributes, Unset):

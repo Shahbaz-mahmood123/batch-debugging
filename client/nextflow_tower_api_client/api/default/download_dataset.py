@@ -16,8 +16,6 @@ def _get_kwargs(
     version: str,
     file_name: str,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/workspaces/{workspaceId}/datasets/{datasetId}/v/{version}/n/{fileName}".format(

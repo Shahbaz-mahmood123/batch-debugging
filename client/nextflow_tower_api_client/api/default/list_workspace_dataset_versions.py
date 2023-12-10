@@ -15,8 +15,6 @@ def _get_kwargs(
     *,
     mime_type: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["mimeType"] = mime_type
 
