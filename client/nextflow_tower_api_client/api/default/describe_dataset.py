@@ -14,8 +14,6 @@ def _get_kwargs(
     workspace_id: int,
     dataset_id: str,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/workspaces/{workspaceId}/datasets/{datasetId}/metadata".format(

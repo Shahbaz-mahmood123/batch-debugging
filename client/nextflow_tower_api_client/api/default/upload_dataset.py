@@ -18,8 +18,6 @@ def _get_kwargs(
     multipart_data: MultiRequestFileSchema,
     header: Union[Unset, None, bool] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["header"] = header
 

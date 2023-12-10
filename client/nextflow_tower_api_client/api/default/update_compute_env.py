@@ -16,8 +16,6 @@ def _get_kwargs(
     json_body: UpdateComputeEnvRequest,
     workspace_id: Union[Unset, None, int] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["workspaceId"] = workspace_id
 

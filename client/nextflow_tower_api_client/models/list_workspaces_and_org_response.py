@@ -6,7 +6,7 @@ from attrs import field as _attrs_field
 from ..types import UNSET, Unset
 
 if TYPE_CHECKING:
-    from ..models.org_and_workspace_db_dto import OrgAndWorkspaceDbDto
+    from ..models.org_and_workspace_dto import OrgAndWorkspaceDto
 
 
 T = TypeVar("T", bound="ListWorkspacesAndOrgResponse")
@@ -16,10 +16,10 @@ T = TypeVar("T", bound="ListWorkspacesAndOrgResponse")
 class ListWorkspacesAndOrgResponse:
     """
     Attributes:
-        orgs_and_workspaces (Union[Unset, List['OrgAndWorkspaceDbDto']]):
+        orgs_and_workspaces (Union[Unset, List['OrgAndWorkspaceDto']]):
     """
 
-    orgs_and_workspaces: Union[Unset, List["OrgAndWorkspaceDbDto"]] = UNSET
+    orgs_and_workspaces: Union[Unset, List["OrgAndWorkspaceDto"]] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -41,13 +41,13 @@ class ListWorkspacesAndOrgResponse:
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
-        from ..models.org_and_workspace_db_dto import OrgAndWorkspaceDbDto
+        from ..models.org_and_workspace_dto import OrgAndWorkspaceDto
 
         d = src_dict.copy()
         orgs_and_workspaces = []
         _orgs_and_workspaces = d.pop("orgsAndWorkspaces", UNSET)
         for orgs_and_workspaces_item_data in _orgs_and_workspaces or []:
-            orgs_and_workspaces_item = OrgAndWorkspaceDbDto.from_dict(orgs_and_workspaces_item_data)
+            orgs_and_workspaces_item = OrgAndWorkspaceDto.from_dict(orgs_and_workspaces_item_data)
 
             orgs_and_workspaces.append(orgs_and_workspaces_item)
 

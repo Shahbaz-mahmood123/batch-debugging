@@ -15,8 +15,6 @@ def _get_kwargs(
     page_size: Union[Unset, None, int] = UNSET,
     page_token: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["page_size"] = page_size
 

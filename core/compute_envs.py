@@ -39,7 +39,7 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         self.client = AuthenticatedClient(token=self.platform_token, base_url=self.platform_url)
 
 
-    def list_compute_envs(self, workspace_id: int, status: str) -> list:
+    def list_compute_envs(self, status: str) -> list:
         """
         List compute environments for a workspace.
 
@@ -51,7 +51,7 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             list: A list of compute environments or an empty list in case of an error.
         """
         try:
-            compute_env_json_list = list_compute_envs.sync(client=self.client, workspace_id=workspace_id, status=status)
+            compute_env_json_list = list_compute_envs.sync(client=self.client, workspace_id=self.workspace_id, status=status)
             return compute_env_json_list
         except Exception as e:
             # Handle the error as needed, e.g., log it or return an empty list.
@@ -83,7 +83,7 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         else:
             print("Please ensure the compute env ID is valid")
             
-    def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
+    def get_tower_compute_envs_id_list(self, status: str) -> list:
         """
         Get a list of Tower compute environment IDs.
 
@@ -94,7 +94,7 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         Returns:
             list: A list of compute environment IDs.
         """
-        compute_envs = self.list_compute_envs(workspace_id, status)
+        compute_envs = self.list_compute_envs(status)
         compute_envs_id_list = self.get_compute_env_id(compute_envs)
 
         # Add "TowerForge-" prefix and "-head" suffix to each element in the list, changed for convinience

@@ -17,8 +17,6 @@ def _get_kwargs(
     offset: Union[Unset, None, int] = UNSET,
     search: Union[Unset, None, str] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["max"] = max_
 

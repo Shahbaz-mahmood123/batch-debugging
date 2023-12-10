@@ -20,8 +20,6 @@ def _get_kwargs(
     type: Union[Unset, None, LabelType] = UNSET,
     is_default: Union[Unset, None, bool] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["workspaceId"] = workspace_id
 

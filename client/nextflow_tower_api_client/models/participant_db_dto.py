@@ -16,30 +16,30 @@ class ParticipantDbDto:
     """
     Attributes:
         user_name (Union[Unset, str]):
-        team_id (Union[Unset, int]):
-        member_id (Union[Unset, int]):
-        participant_id (Union[Unset, int]):
-        wsp_role (Union[Unset, WspRole]):
-        org_role (Union[Unset, OrgRole]):
+        email (Union[Unset, str]):
         user_avatar_url (Union[Unset, str]):
         team_name (Union[Unset, str]):
         team_avatar_url (Union[Unset, str]):
-        email (Union[Unset, str]):
+        participant_id (Union[Unset, int]):
+        org_role (Union[Unset, OrgRole]):
+        wsp_role (Union[Unset, WspRole]):
+        team_id (Union[Unset, int]):
+        member_id (Union[Unset, int]):
         first_name (Union[Unset, str]):
         last_name (Union[Unset, str]):
         type (Union[Unset, ParticipantType]):
     """
 
     user_name: Union[Unset, str] = UNSET
-    team_id: Union[Unset, int] = UNSET
-    member_id: Union[Unset, int] = UNSET
-    participant_id: Union[Unset, int] = UNSET
-    wsp_role: Union[Unset, WspRole] = UNSET
-    org_role: Union[Unset, OrgRole] = UNSET
+    email: Union[Unset, str] = UNSET
     user_avatar_url: Union[Unset, str] = UNSET
     team_name: Union[Unset, str] = UNSET
     team_avatar_url: Union[Unset, str] = UNSET
-    email: Union[Unset, str] = UNSET
+    participant_id: Union[Unset, int] = UNSET
+    org_role: Union[Unset, OrgRole] = UNSET
+    wsp_role: Union[Unset, WspRole] = UNSET
+    team_id: Union[Unset, int] = UNSET
+    member_id: Union[Unset, int] = UNSET
     first_name: Union[Unset, str] = UNSET
     last_name: Union[Unset, str] = UNSET
     type: Union[Unset, ParticipantType] = UNSET
@@ -47,21 +47,21 @@ class ParticipantDbDto:
 
     def to_dict(self) -> Dict[str, Any]:
         user_name = self.user_name
-        team_id = self.team_id
-        member_id = self.member_id
+        email = self.email
+        user_avatar_url = self.user_avatar_url
+        team_name = self.team_name
+        team_avatar_url = self.team_avatar_url
         participant_id = self.participant_id
-        wsp_role: Union[Unset, str] = UNSET
-        if not isinstance(self.wsp_role, Unset):
-            wsp_role = self.wsp_role.value
-
         org_role: Union[Unset, str] = UNSET
         if not isinstance(self.org_role, Unset):
             org_role = self.org_role.value
 
-        user_avatar_url = self.user_avatar_url
-        team_name = self.team_name
-        team_avatar_url = self.team_avatar_url
-        email = self.email
+        wsp_role: Union[Unset, str] = UNSET
+        if not isinstance(self.wsp_role, Unset):
+            wsp_role = self.wsp_role.value
+
+        team_id = self.team_id
+        member_id = self.member_id
         first_name = self.first_name
         last_name = self.last_name
         type: Union[Unset, str] = UNSET
@@ -73,24 +73,24 @@ class ParticipantDbDto:
         field_dict.update({})
         if user_name is not UNSET:
             field_dict["userName"] = user_name
-        if team_id is not UNSET:
-            field_dict["teamId"] = team_id
-        if member_id is not UNSET:
-            field_dict["memberId"] = member_id
-        if participant_id is not UNSET:
-            field_dict["participantId"] = participant_id
-        if wsp_role is not UNSET:
-            field_dict["wspRole"] = wsp_role
-        if org_role is not UNSET:
-            field_dict["orgRole"] = org_role
+        if email is not UNSET:
+            field_dict["email"] = email
         if user_avatar_url is not UNSET:
             field_dict["userAvatarUrl"] = user_avatar_url
         if team_name is not UNSET:
             field_dict["teamName"] = team_name
         if team_avatar_url is not UNSET:
             field_dict["teamAvatarUrl"] = team_avatar_url
-        if email is not UNSET:
-            field_dict["email"] = email
+        if participant_id is not UNSET:
+            field_dict["participantId"] = participant_id
+        if org_role is not UNSET:
+            field_dict["orgRole"] = org_role
+        if wsp_role is not UNSET:
+            field_dict["wspRole"] = wsp_role
+        if team_id is not UNSET:
+            field_dict["teamId"] = team_id
+        if member_id is not UNSET:
+            field_dict["memberId"] = member_id
         if first_name is not UNSET:
             field_dict["firstName"] = first_name
         if last_name is not UNSET:
@@ -105,18 +105,15 @@ class ParticipantDbDto:
         d = src_dict.copy()
         user_name = d.pop("userName", UNSET)
 
-        team_id = d.pop("teamId", UNSET)
+        email = d.pop("email", UNSET)
 
-        member_id = d.pop("memberId", UNSET)
+        user_avatar_url = d.pop("userAvatarUrl", UNSET)
+
+        team_name = d.pop("teamName", UNSET)
+
+        team_avatar_url = d.pop("teamAvatarUrl", UNSET)
 
         participant_id = d.pop("participantId", UNSET)
-
-        _wsp_role = d.pop("wspRole", UNSET)
-        wsp_role: Union[Unset, WspRole]
-        if isinstance(_wsp_role, Unset):
-            wsp_role = UNSET
-        else:
-            wsp_role = WspRole(_wsp_role)
 
         _org_role = d.pop("orgRole", UNSET)
         org_role: Union[Unset, OrgRole]
@@ -125,13 +122,16 @@ class ParticipantDbDto:
         else:
             org_role = OrgRole(_org_role)
 
-        user_avatar_url = d.pop("userAvatarUrl", UNSET)
+        _wsp_role = d.pop("wspRole", UNSET)
+        wsp_role: Union[Unset, WspRole]
+        if isinstance(_wsp_role, Unset):
+            wsp_role = UNSET
+        else:
+            wsp_role = WspRole(_wsp_role)
 
-        team_name = d.pop("teamName", UNSET)
+        team_id = d.pop("teamId", UNSET)
 
-        team_avatar_url = d.pop("teamAvatarUrl", UNSET)
-
-        email = d.pop("email", UNSET)
+        member_id = d.pop("memberId", UNSET)
 
         first_name = d.pop("firstName", UNSET)
 
@@ -146,15 +146,15 @@ class ParticipantDbDto:
 
         participant_db_dto = cls(
             user_name=user_name,
-            team_id=team_id,
-            member_id=member_id,
-            participant_id=participant_id,
-            wsp_role=wsp_role,
-            org_role=org_role,
+            email=email,
             user_avatar_url=user_avatar_url,
             team_name=team_name,
             team_avatar_url=team_avatar_url,
-            email=email,
+            participant_id=participant_id,
+            org_role=org_role,
+            wsp_role=wsp_role,
+            team_id=team_id,
+            member_id=member_id,
             first_name=first_name,
             last_name=last_name,
             type=type,

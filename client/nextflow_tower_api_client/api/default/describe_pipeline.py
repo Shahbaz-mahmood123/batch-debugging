@@ -18,8 +18,6 @@ def _get_kwargs(
     workspace_id: Union[Unset, None, int] = UNSET,
     source_workspace_id: Union[Unset, None, int] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     json_attributes: Union[Unset, None, List[str]] = UNSET
     if not isinstance(attributes, Unset):

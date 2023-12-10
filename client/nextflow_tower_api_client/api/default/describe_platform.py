@@ -17,8 +17,6 @@ def _get_kwargs(
     region_id: str,
     credentials_id: str,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["workspaceId"] = workspace_id
 

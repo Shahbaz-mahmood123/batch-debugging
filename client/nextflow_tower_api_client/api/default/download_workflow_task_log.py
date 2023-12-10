@@ -17,8 +17,6 @@ def _get_kwargs(
     file_name: Union[Unset, None, str] = UNSET,
     workspace_id: Union[Unset, None, int] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["fileName"] = file_name
 
