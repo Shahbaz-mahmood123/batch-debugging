@@ -16,8 +16,6 @@ def _get_kwargs(
     workspace_id: Union[Unset, None, int] = UNSET,
     attributes: Union[Unset, None, List[ActionQueryAttribute]] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["workspaceId"] = workspace_id
 

@@ -14,8 +14,6 @@ def _get_kwargs(
     org_id: int,
     workspace_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/orgs/{orgId}/workspaces/{workspaceId}".format(

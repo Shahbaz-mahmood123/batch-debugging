@@ -158,7 +158,7 @@ from .moab_configuration import MoabConfiguration
 from .multi_request_file_schema import MultiRequestFileSchema
 from .navbar_config import NavbarConfig
 from .navbar_config_navbar_menu import NavbarConfigNavbarMenu
-from .org_and_workspace_db_dto import OrgAndWorkspaceDbDto
+from .org_and_workspace_dto import OrgAndWorkspaceDto
 from .org_role import OrgRole
 from .organization import Organization
 from .organization_db_dto import OrganizationDbDto
@@ -404,7 +404,7 @@ __all__ = (
     "MultiRequestFileSchema",
     "NavbarConfig",
     "NavbarConfigNavbarMenu",
-    "OrgAndWorkspaceDbDto",
+    "OrgAndWorkspaceDto",
     "Organization",
     "OrganizationDbDto",
     "OrgRole",

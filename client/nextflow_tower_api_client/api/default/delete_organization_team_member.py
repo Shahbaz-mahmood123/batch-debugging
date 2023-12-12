@@ -14,8 +14,6 @@ def _get_kwargs(
     team_id: int,
     member_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "delete",
         "url": "/orgs/{orgId}/teams/{teamId}/members/{memberId}/delete".format(

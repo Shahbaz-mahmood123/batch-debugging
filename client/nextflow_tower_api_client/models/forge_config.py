@@ -43,6 +43,7 @@ class ForgeConfig:
         ecs_config (Union[Unset, str]):
         fargate_head_enabled (Union[Unset, bool]):
         arm_64_enabled (Union[Unset, bool]):
+        dragen_instance_type (Union[Unset, str]):
     """
 
     type: Union[Unset, ForgeConfigType] = UNSET
@@ -74,6 +75,7 @@ class ForgeConfig:
     ecs_config: Union[Unset, str] = UNSET
     fargate_head_enabled: Union[Unset, bool] = UNSET
     arm_64_enabled: Union[Unset, bool] = UNSET
+    dragen_instance_type: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
@@ -124,6 +126,7 @@ class ForgeConfig:
         ecs_config = self.ecs_config
         fargate_head_enabled = self.fargate_head_enabled
         arm_64_enabled = self.arm_64_enabled
+        dragen_instance_type = self.dragen_instance_type
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
@@ -186,6 +189,8 @@ class ForgeConfig:
             field_dict["fargateHeadEnabled"] = fargate_head_enabled
         if arm_64_enabled is not UNSET:
             field_dict["arm64Enabled"] = arm_64_enabled
+        if dragen_instance_type is not UNSET:
+            field_dict["dragenInstanceType"] = dragen_instance_type
 
         return field_dict
 
@@ -260,6 +265,8 @@ class ForgeConfig:
 
         arm_64_enabled = d.pop("arm64Enabled", UNSET)
 
+        dragen_instance_type = d.pop("dragenInstanceType", UNSET)
+
         forge_config = cls(
             type=type,
             min_cpus=min_cpus,
@@ -290,6 +297,7 @@ class ForgeConfig:
             ecs_config=ecs_config,
             fargate_head_enabled=fargate_head_enabled,
             arm_64_enabled=arm_64_enabled,
+            dragen_instance_type=dragen_instance_type,
         )
 
         forge_config.additional_properties = d

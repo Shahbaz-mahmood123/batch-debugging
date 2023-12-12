@@ -1,9 +1,10 @@
-from typing import Any, Dict, List, Type, TypeVar
+from typing import Any, Dict, List, Type, TypeVar, Union
 
 from attrs import define as _attrs_define
 from attrs import field as _attrs_field
 
 from ..models.org_role import OrgRole
+from ..types import UNSET, Unset
 
 T = TypeVar("T", bound="MemberDbDto")
 
@@ -12,80 +13,92 @@ T = TypeVar("T", bound="MemberDbDto")
 class MemberDbDto:
     """
     Attributes:
-        user_name (str):
-        member_id (int):
-        user_id (int):
-        avatar (str):
-        role (OrgRole):
-        email (str):
-        first_name (str):
-        last_name (str):
+        avatar (Union[Unset, str]):
+        user_name (Union[Unset, str]):
+        email (Union[Unset, str]):
+        member_id (Union[Unset, int]):
+        user_id (Union[Unset, int]):
+        role (Union[Unset, OrgRole]):
+        first_name (Union[Unset, str]):
+        last_name (Union[Unset, str]):
     """
 
-    user_name: str
-    member_id: int
-    user_id: int
-    avatar: str
-    role: OrgRole
-    email: str
-    first_name: str
-    last_name: str
+    avatar: Union[Unset, str] = UNSET
+    user_name: Union[Unset, str] = UNSET
+    email: Union[Unset, str] = UNSET
+    member_id: Union[Unset, int] = UNSET
+    user_id: Union[Unset, int] = UNSET
+    role: Union[Unset, OrgRole] = UNSET
+    first_name: Union[Unset, str] = UNSET
+    last_name: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
+        avatar = self.avatar
         user_name = self.user_name
+        email = self.email
         member_id = self.member_id
         user_id = self.user_id
-        avatar = self.avatar
-        role = self.role.value
+        role: Union[Unset, str] = UNSET
+        if not isinstance(self.role, Unset):
+            role = self.role.value
 
-        email = self.email
         first_name = self.first_name
         last_name = self.last_name
 
         field_dict: Dict[str, Any] = {}
         field_dict.update(self.additional_properties)
-        field_dict.update(
-            {
-                "userName": user_name,
-                "memberId": member_id,
-                "userId": user_id,
-                "avatar": avatar,
-                "role": role,
-                "email": email,
-                "firstName": first_name,
-                "lastName": last_name,
-            }
-        )
+        field_dict.update({})
+        if avatar is not UNSET:
+            field_dict["avatar"] = avatar
+        if user_name is not UNSET:
+            field_dict["userName"] = user_name
+        if email is not UNSET:
+            field_dict["email"] = email
+        if member_id is not UNSET:
+            field_dict["memberId"] = member_id
+        if user_id is not UNSET:
+            field_dict["userId"] = user_id
+        if role is not UNSET:
+            field_dict["role"] = role
+        if first_name is not UNSET:
+            field_dict["firstName"] = first_name
+        if last_name is not UNSET:
+            field_dict["lastName"] = last_name
 
         return field_dict
 
     @classmethod
     def from_dict(cls: Type[T], src_dict: Dict[str, Any]) -> T:
         d = src_dict.copy()
-        user_name = d.pop("userName")
+        avatar = d.pop("avatar", UNSET)
 
-        member_id = d.pop("memberId")
+        user_name = d.pop("userName", UNSET)
 
-        user_id = d.pop("userId")
+        email = d.pop("email", UNSET)
 
-        avatar = d.pop("avatar")
+        member_id = d.pop("memberId", UNSET)
 
-        role = OrgRole(d.pop("role"))
+        user_id = d.pop("userId", UNSET)
 
-        email = d.pop("email")
+        _role = d.pop("role", UNSET)
+        role: Union[Unset, OrgRole]
+        if isinstance(_role, Unset):
+            role = UNSET
+        else:
+            role = OrgRole(_role)
 
-        first_name = d.pop("firstName")
+        first_name = d.pop("firstName", UNSET)
 
-        last_name = d.pop("lastName")
+        last_name = d.pop("lastName", UNSET)
 
         member_db_dto = cls(
+            avatar=avatar,
             user_name=user_name,
+            email=email,
             member_id=member_id,
             user_id=user_id,
-            avatar=avatar,
             role=role,
-            email=email,
             first_name=first_name,
             last_name=last_name,
         )

@@ -13,8 +13,6 @@ from ...types import Response
 def _get_kwargs(
     workspace_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/workspaces/{workspaceId}/datasets".format(

@@ -12,8 +12,6 @@ from ...types import Response
 def _get_kwargs(
     token_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "delete",
         "url": "/tokens/{tokenId}".format(

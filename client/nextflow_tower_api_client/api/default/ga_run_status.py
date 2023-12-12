@@ -13,8 +13,6 @@ from ...types import Response
 def _get_kwargs(
     run_id: str,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/ga4gh/wes/v1/runs/{run_id}/status".format(

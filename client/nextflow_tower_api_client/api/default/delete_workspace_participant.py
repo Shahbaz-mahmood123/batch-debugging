@@ -14,8 +14,6 @@ def _get_kwargs(
     workspace_id: int,
     participant_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "delete",
         "url": "/orgs/{orgId}/workspaces/{workspaceId}/participants/{participantId}".format(

@@ -14,29 +14,29 @@ class UpdateOrganizationRequest:
     Attributes:
         location (Union[Unset, str]):
         description (Union[Unset, str]):
-        logo_id (Union[Unset, str]):
-        full_name (Union[Unset, str]):
         paying (Union[Unset, None, bool]):
         website (Union[Unset, str]):
+        logo_id (Union[Unset, str]):
+        full_name (Union[Unset, str]):
         name (Union[Unset, str]):
     """
 
     location: Union[Unset, str] = UNSET
     description: Union[Unset, str] = UNSET
-    logo_id: Union[Unset, str] = UNSET
-    full_name: Union[Unset, str] = UNSET
     paying: Union[Unset, None, bool] = UNSET
     website: Union[Unset, str] = UNSET
+    logo_id: Union[Unset, str] = UNSET
+    full_name: Union[Unset, str] = UNSET
     name: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         location = self.location
         description = self.description
-        logo_id = self.logo_id
-        full_name = self.full_name
         paying = self.paying
         website = self.website
+        logo_id = self.logo_id
+        full_name = self.full_name
         name = self.name
 
         field_dict: Dict[str, Any] = {}
@@ -46,14 +46,14 @@ class UpdateOrganizationRequest:
             field_dict["location"] = location
         if description is not UNSET:
             field_dict["description"] = description
-        if logo_id is not UNSET:
-            field_dict["logoId"] = logo_id
-        if full_name is not UNSET:
-            field_dict["fullName"] = full_name
         if paying is not UNSET:
             field_dict["paying"] = paying
         if website is not UNSET:
             field_dict["website"] = website
+        if logo_id is not UNSET:
+            field_dict["logoId"] = logo_id
+        if full_name is not UNSET:
+            field_dict["fullName"] = full_name
         if name is not UNSET:
             field_dict["name"] = name
 
@@ -66,23 +66,23 @@ class UpdateOrganizationRequest:
 
         description = d.pop("description", UNSET)
 
-        logo_id = d.pop("logoId", UNSET)
-
-        full_name = d.pop("fullName", UNSET)
-
         paying = d.pop("paying", UNSET)
 
         website = d.pop("website", UNSET)
+
+        logo_id = d.pop("logoId", UNSET)
+
+        full_name = d.pop("fullName", UNSET)
 
         name = d.pop("name", UNSET)
 
         update_organization_request = cls(
             location=location,
             description=description,
-            logo_id=logo_id,
-            full_name=full_name,
             paying=paying,
             website=website,
+            logo_id=logo_id,
+            full_name=full_name,
             name=name,
         )
 

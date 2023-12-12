@@ -16,8 +16,6 @@ def _get_kwargs(
     revision: Union[Unset, None, str] = UNSET,
     workspace_id: Union[Unset, None, int] = UNSET,
 ) -> Dict[str, Any]:
-    pass
-
     params: Dict[str, Any] = {}
     params["name"] = name
 

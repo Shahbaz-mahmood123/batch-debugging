@@ -21,6 +21,7 @@ class AWSBatchConfiguration:
         region (Union[Unset, str]):
         compute_queue (Union[Unset, str]):
         dragen_queue (Union[Unset, str]):
+        dragen_instance_type (Union[Unset, str]):
         compute_job_role (Union[Unset, str]):
         execution_role (Union[Unset, str]):
         head_queue (Union[Unset, str]):
@@ -45,6 +46,7 @@ class AWSBatchConfiguration:
     region: Union[Unset, str] = UNSET
     compute_queue: Union[Unset, str] = UNSET
     dragen_queue: Union[Unset, str] = UNSET
+    dragen_instance_type: Union[Unset, str] = UNSET
     compute_job_role: Union[Unset, str] = UNSET
     execution_role: Union[Unset, str] = UNSET
     head_queue: Union[Unset, str] = UNSET
@@ -70,6 +72,7 @@ class AWSBatchConfiguration:
         region = self.region
         compute_queue = self.compute_queue
         dragen_queue = self.dragen_queue
+        dragen_instance_type = self.dragen_instance_type
         compute_job_role = self.compute_job_role
         execution_role = self.execution_role
         head_queue = self.head_queue
@@ -119,6 +122,8 @@ class AWSBatchConfiguration:
             field_dict["computeQueue"] = compute_queue
         if dragen_queue is not UNSET:
             field_dict["dragenQueue"] = dragen_queue
+        if dragen_instance_type is not UNSET:
+            field_dict["dragenInstanceType"] = dragen_instance_type
         if compute_job_role is not UNSET:
             field_dict["computeJobRole"] = compute_job_role
         if execution_role is not UNSET:
@@ -172,6 +177,8 @@ class AWSBatchConfiguration:
         compute_queue = d.pop("computeQueue", UNSET)
 
         dragen_queue = d.pop("dragenQueue", UNSET)
+
+        dragen_instance_type = d.pop("dragenInstanceType", UNSET)
 
         compute_job_role = d.pop("computeJobRole", UNSET)
 
@@ -230,6 +237,7 @@ class AWSBatchConfiguration:
             region=region,
             compute_queue=compute_queue,
             dragen_queue=dragen_queue,
+            dragen_instance_type=dragen_instance_type,
             compute_job_role=compute_job_role,
             execution_role=execution_role,
             head_queue=head_queue,

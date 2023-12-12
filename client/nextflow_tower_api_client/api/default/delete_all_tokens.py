@@ -10,8 +10,6 @@ from ...types import Response
 
 
 def _get_kwargs() -> Dict[str, Any]:
-    pass
-
     return {
         "method": "delete",
         "url": "/tokens/delete-all",

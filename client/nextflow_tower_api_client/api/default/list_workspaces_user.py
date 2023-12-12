@@ -13,8 +13,6 @@ from ...types import Response
 def _get_kwargs(
     user_id: int,
 ) -> Dict[str, Any]:
-    pass
-
     return {
         "method": "get",
         "url": "/user/{userId}/workspaces".format(

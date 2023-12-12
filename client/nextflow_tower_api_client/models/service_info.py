@@ -37,7 +37,7 @@ class ServiceInfo:
         groundswell_allowed_workspaces (Union[Unset, List[int]]):
         wave_allowed_workspaces (Union[Unset, List[int]]):
         forge_prefix (Union[Unset, str]):
-        data_explorer_allowed_workspaces (Union[Unset, List[int]]):
+        data_explorer_enabled (Union[Unset, bool]):
         seqera_cloud (Union[Unset, bool]):
         arm_64_enabled (Union[Unset, bool]):
         eval_workspace_ids (Union[Unset, List[int]]):
@@ -63,7 +63,7 @@ class ServiceInfo:
     groundswell_allowed_workspaces: Union[Unset, List[int]] = UNSET
     wave_allowed_workspaces: Union[Unset, List[int]] = UNSET
     forge_prefix: Union[Unset, str] = UNSET
-    data_explorer_allowed_workspaces: Union[Unset, List[int]] = UNSET
+    data_explorer_enabled: Union[Unset, bool] = UNSET
     seqera_cloud: Union[Unset, bool] = UNSET
     arm_64_enabled: Union[Unset, bool] = UNSET
     eval_workspace_ids: Union[Unset, List[int]] = UNSET
@@ -105,10 +105,7 @@ class ServiceInfo:
             wave_allowed_workspaces = self.wave_allowed_workspaces
 
         forge_prefix = self.forge_prefix
-        data_explorer_allowed_workspaces: Union[Unset, List[int]] = UNSET
-        if not isinstance(self.data_explorer_allowed_workspaces, Unset):
-            data_explorer_allowed_workspaces = self.data_explorer_allowed_workspaces
-
+        data_explorer_enabled = self.data_explorer_enabled
         seqera_cloud = self.seqera_cloud
         arm_64_enabled = self.arm_64_enabled
         eval_workspace_ids: Union[Unset, List[int]] = UNSET
@@ -158,8 +155,8 @@ class ServiceInfo:
             field_dict["waveAllowedWorkspaces"] = wave_allowed_workspaces
         if forge_prefix is not UNSET:
             field_dict["forgePrefix"] = forge_prefix
-        if data_explorer_allowed_workspaces is not UNSET:
-            field_dict["dataExplorerAllowedWorkspaces"] = data_explorer_allowed_workspaces
+        if data_explorer_enabled is not UNSET:
+            field_dict["dataExplorerEnabled"] = data_explorer_enabled
         if seqera_cloud is not UNSET:
             field_dict["seqeraCloud"] = seqera_cloud
         if arm_64_enabled is not UNSET:
@@ -225,7 +222,7 @@ class ServiceInfo:
 
         forge_prefix = d.pop("forgePrefix", UNSET)
 
-        data_explorer_allowed_workspaces = cast(List[int], d.pop("dataExplorerAllowedWorkspaces", UNSET))
+        data_explorer_enabled = d.pop("dataExplorerEnabled", UNSET)
 
         seqera_cloud = d.pop("seqeraCloud", UNSET)
 
@@ -254,7 +251,7 @@ class ServiceInfo:
             groundswell_allowed_workspaces=groundswell_allowed_workspaces,
             wave_allowed_workspaces=wave_allowed_workspaces,
             forge_prefix=forge_prefix,
-            data_explorer_allowed_workspaces=data_explorer_allowed_workspaces,
+            data_explorer_enabled=data_explorer_enabled,
             seqera_cloud=seqera_cloud,
             arm_64_enabled=arm_64_enabled,
             eval_workspace_ids=eval_workspace_ids,

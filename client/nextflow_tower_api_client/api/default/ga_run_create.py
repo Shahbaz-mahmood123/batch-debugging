@@ -16,9 +16,7 @@ def _get_kwargs(
     multipart_data: RunRequest,
     json_body: RunRequest,
 ) -> Dict[str, Any]:
-    pass
-
-    json_body.to_dict()
+    json_json_body = json_body.to_dict()
 
     multipart_multipart_data = multipart_data.to_multipart()
 

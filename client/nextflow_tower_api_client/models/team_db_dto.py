@@ -13,23 +13,23 @@ class TeamDbDto:
     """
     Attributes:
         description (Union[Unset, str]):
-        avatar_url (Union[Unset, str]):
         team_id (Union[Unset, int]):
+        avatar_url (Union[Unset, str]):
         members_count (Union[Unset, int]):
         name (Union[Unset, str]):
     """
 
     description: Union[Unset, str] = UNSET
-    avatar_url: Union[Unset, str] = UNSET
     team_id: Union[Unset, int] = UNSET
+    avatar_url: Union[Unset, str] = UNSET
     members_count: Union[Unset, int] = UNSET
     name: Union[Unset, str] = UNSET
     additional_properties: Dict[str, Any] = _attrs_field(init=False, factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
         description = self.description
-        avatar_url = self.avatar_url
         team_id = self.team_id
+        avatar_url = self.avatar_url
         members_count = self.members_count
         name = self.name
 
@@ -38,10 +38,10 @@ class TeamDbDto:
         field_dict.update({})
         if description is not UNSET:
             field_dict["description"] = description
-        if avatar_url is not UNSET:
-            field_dict["avatarUrl"] = avatar_url
         if team_id is not UNSET:
             field_dict["teamId"] = team_id
+        if avatar_url is not UNSET:
+            field_dict["avatarUrl"] = avatar_url
         if members_count is not UNSET:
             field_dict["membersCount"] = members_count
         if name is not UNSET:
@@ -54,9 +54,9 @@ class TeamDbDto:
         d = src_dict.copy()
         description = d.pop("description", UNSET)
 
-        avatar_url = d.pop("avatarUrl", UNSET)
-
         team_id = d.pop("teamId", UNSET)
+
+        avatar_url = d.pop("avatarUrl", UNSET)
 
         members_count = d.pop("membersCount", UNSET)
 
@@ -64,8 +64,8 @@ class TeamDbDto:
 
         team_db_dto = cls(
             description=description,
-            avatar_url=avatar_url,
             team_id=team_id,
+            avatar_url=avatar_url,
             members_count=members_count,
             name=name,
         )
