@@ -1,7 +1,10 @@
 import os
 from client.nextflow_tower_api_client import AuthenticatedClient
 from client.nextflow_tower_api_client.api.default import list_compute_envs, describe_compute_env
+from client.nextflow_tower_api_client.models.describe_compute_env_response import DescribeComputeEnvResponse
 from client.nextflow_tower_api_client.models.list_compute_envs_response import ListComputeEnvsResponse
+from client.nextflow_tower_api_client.models.compute_env_response_dto import ComputeEnvResponseDto
+
 # from core.client import AuthenticatedPlatformClient
 
 class SeqeraComputeEnvsWrapperInterface:
@@ -13,6 +16,9 @@ class SeqeraComputeEnvsWrapperInterface:
     
     def get_compute_env(self, workspace_id: int, compute_env_id: str) -> dict:
         pass 
+    
+    def optimize_compute_env(self, compute_env: ComputeEnvResponseDto) -> dict:
+        pass
 
 class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
     def __init__(self, workspace_id=None, platform_token=None, platform_url=None ):
@@ -58,7 +64,7 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             print(f"Error while listing compute environments: {str(e)}")
             return []
 
-    def get_compute_env_id(self, compute_env_list: list) -> list:
+    def get_compute_env_id(self, compute_env_list: list) -> ComputeEnvResponseDto:
         """
         Get the IDs of compute environments from a list of compute environments.
 
@@ -76,10 +82,11 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             print(f"Error while getting compute environment IDs: {str(e)}")
             return []
         
-    def get_compute_env(self, compute_env_id: str) -> dict:
+    def get_compute_env(self, compute_env_id: str) -> ComputeEnvResponseDto:
         if compute_env_id:
-            compute_env = describe_compute_env.sync(client=self.client, compute_env_id=compute_env_id, workspace_id=self.workspace_id)
-            return compute_env
+            compute_env_response = describe_compute_env.sync(client=self.client, compute_env_id=compute_env_id, workspace_id=self.workspace_id)
+            #compute_env = DescribeComputeEnvResponse.to_dict(compute_env_response)
+            return compute_env_response
         else:
             print("Please ensure the compute env ID is valid")
             
@@ -100,5 +107,25 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         # Add "TowerForge-" prefix and "-head" suffix to each element in the list, changed for convinience
         modified_id_list = [f'ShahbazCompute-{env_id}-head' for env_id in compute_envs_id_list]
         return modified_id_list
-            
     
+            
+    def optimize_compute_env(self, compute_env: ComputeEnvResponseDto) -> dict:
+        """ Given a compute envornment recommend changes to optimize settings
+
+        Args:
+            compute_env (dict): A compute enviornment object retrieved from the Seqera API.
+        """
+        ce = DescribeComputeEnvResponse.to_dict(compute_env)
+        recommendations = {}
+       # print(ce['computeEnv']['config']['headJobCpus'])
+        head_job_cpus = ce['computeEnv']['config']['headJobCpus']
+        head_job_memory_mb = ce['computeEnv']['config']['headJobMemoryMb']
+        
+        if ce: 
+            if head_job_memory_mb is None:
+                recommendations["Advanced option - Head Job Memory"]= "For scalaiblity we recommend increasing the head job memory to a sensible value. Generally we recommend 16GB" 
+            if head_job_cpus is None:
+                recommendations["Advanced option - Head Job CPUs"] = "For scalaiblity we recommend increasing the head jobs CPU to 8 cpus"         
+        return recommendations
+    def debug_compute_env():
+        pass
