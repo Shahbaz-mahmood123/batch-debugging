@@ -82,7 +82,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             dict: returns 5 most recent jobs.
         """
         try:
-            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, maxResults=50, jobStatus=job_status)
+            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, maxResults=5, jobStatus=job_status)
             job_summary_list = job_response.get("jobSummaryList", [])
             if job_summary_list == []:
                 return f"No jobs with the status of {job_status} found"
