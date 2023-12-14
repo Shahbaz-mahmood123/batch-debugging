@@ -123,9 +123,9 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
         
         if ce: 
             if head_job_memory_mb is None:
-                recommendations["Advanced option - Head Job Memory"]= "For scalaiblity we recommend increasing the head job memory to a sensible value. Generally we recommend 16GB" 
+                recommendations["Advanced option - Head Job Memory"]= "For scalability we recommend increasing the head job memory to a sensible value. Generally we recommend 16GB" 
             if head_job_cpus is None:
-                recommendations["Advanced option - Head Job CPUs"] = "For scalaiblity we recommend increasing the head jobs CPU to 8 cpus"         
+                recommendations["Advanced option - Head Job CPUs"] = "For scalability we recommend increasing the head jobs CPU to 8 cpus"         
         return recommendations
     def debug_compute_env():
         pass

@@ -128,7 +128,7 @@ def fetch_compute_autoscaling_group_activity(compute_env_id: str) -> dict
       return autoscaling_activity
 
     except Exception as e:
-      return ["An error occured retrieving the running and failed jobs"]
+      return [f"An error occured retrieving the autoscaling  {e}"]
 ```
 
 <!-- ### Prerequisites
