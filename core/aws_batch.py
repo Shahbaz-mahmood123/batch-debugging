@@ -65,7 +65,6 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             # Compare the AutoScalingGroupName up to the point where "work" appears
             if auto_scaling_group_name.startswith(target_string):
                 print(f"Match found for {target_string}")
-                # You can perform additional actions here if needed
                 break
         else:
             print(f"No match found for {target_string}")
