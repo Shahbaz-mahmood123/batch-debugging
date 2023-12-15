@@ -120,12 +120,16 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
        # print(ce['computeEnv']['config']['headJobCpus'])
         head_job_cpus = ce['computeEnv']['config']['headJobCpus']
         head_job_memory_mb = ce['computeEnv']['config']['headJobMemoryMb']
+        max_cpus = ce['computeEnv']['config']['additional_properties']['forge']['maxCpus']
+        fusion2_enabled = ce['computeEnv']['config']['additional_properties']['fusion2Enabled']
+        nvnme_storage_enabled = ce['computeEnv']['config']['additional_properties']['nvnmeStorageEnabled']
+        wave_enabled = ce['computeEnv']['config']['additional_properties']['waveEnabled']
+        alloc_strategy = ce['computeEnv']['config']['additional_properties']['forge']['allocStrategy']
         
         if ce: 
             if head_job_memory_mb is None:
                 recommendations["Advanced option - Head Job Memory"]= "For scalability we recommend increasing the head job memory to a sensible value. Generally we recommend 16GB" 
             if head_job_cpus is None:
-                recommendations["Advanced option - Head Job CPUs"] = "For scalability we recommend increasing the head jobs CPU to 8 cpus"         
         return recommendations
     def debug_compute_env():
         pass
