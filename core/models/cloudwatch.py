@@ -18,7 +18,8 @@ class LogGroupResponse:
         self.nextToken = nextToken
 
 class LogStream:
-    def __init__(self, logStreamName, creationTime, firstEventTimestamp, lastEventTimestamp, lastIngestionTime, uploadSequenceToken, arn, storedBytes):
+    def __init__(self, logStreamName, creationTime, arn, storedBytes, 
+                 firstEventTimestamp=None,lastEventTimestamp=None, lastIngestionTime=None, uploadSequenceToken=None):
         self.logStreamName = logStreamName
         self.creationTime = creationTime
         self.firstEventTimestamp = firstEventTimestamp
