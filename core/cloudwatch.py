@@ -47,17 +47,14 @@ class CloudWatch(CloudWatchInterface):
         elif log_group is None and log_group_name == "":
             return f"Please pass either a log group object or the log group name"
         
-        # TODO: Accept alternate log group names.
-        if "tower/forge" in log_group_name:
-            try: 
-                log_stream = self.cloudwatch_client.describe_log_streams(logGroupIdentifier=log_group_name, orderBy="LastEventTime")
-            except Exception as e:
-                return f"An error occured fetching the logstream {e}"   
-            else:
-                log_stream_response = LogStreamResponse(logStreams=log_stream['logStreams'])
-                return log_stream_response
-        else: 
-            return f"Please pass a valid log group object"   
+        try: 
+            log_stream = self.cloudwatch_client.describe_log_streams(logGroupIdentifier=log_group_name, orderBy="LastEventTime")
+        except Exception as e:
+            return f"An error occured fetching the logstream {e}"   
+        else:
+            log_stream_response = LogStreamResponse(logStreams=log_stream['logStreams'])
+            return log_stream_response
+   
         
     def get_log_events(self, log_stream_name: str, log_group_name: str) -> LogEventsResponse:
         """Fetches events for a specified log stream
