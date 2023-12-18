@@ -33,3 +33,15 @@ class LogStreamResponse:
     def __init__(self, logStreams, nextToken=None):
         self.logStreams = [LogStream(**stream) for stream in logStreams]
         self.nextToken = nextToken
+
+class LogEvent:
+    def __init__(self, timestamp, message, ingestionTime):
+        self.timestamp = timestamp
+        self.message = message
+        self.ingestionTime = ingestionTime
+
+class LogEventsResponse:
+    def __init__(self, events, nextForwardToken=None, nextBackwardToken=None):
+        self.events = [LogEvent(**event) for event in events]
+        self.nextForwardToken = nextForwardToken
+        self.nextBackwardToken = nextBackwardToken
