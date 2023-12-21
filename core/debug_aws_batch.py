@@ -1,4 +1,5 @@
 import base64
+import re
 import boto3
 import os
 import botocore 
@@ -9,6 +10,7 @@ from core.compute_envs import SeqeraComputeEnvsWrapper
 from core.autoscaling import AutoscalingWrapper
 from core.client import AuthenticatedPlatformClient
 from core.ecs import ECSWrapper
+from core.cloudwatch import CloudWatch
 
 class DebugAWSBatchInterface:
     def get_tower_compute_envs_id_list(self, workspace_id: str, status: str) -> list:
@@ -49,33 +51,40 @@ class DebugAWSBatchInterface:
     
     def get_succeeded_jobs(self, job_queue_id: str) -> dict:
         pass
+    
+    def get_recent_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
+        pass 
 
 # TODO: Need to refactor some of this code, right now we assume ECS, Batch and the ASGs have the same initial name
 # for example TowerForge-someid-head, I should get the ARNS for the various service objects from the API calls made via
 # boto 3
 class DebugAWSBatch(DebugAWSBatchInterface):
-    def __init__(self):
+    def __init__(self, region=None):
         """
         Initializes the DebugAWSBatch class.
 
         Args:
-            authenticated_tower_client (AuthenticatedPlatformClient): An instance of AuthenticatedPlatformClient.
+            region (None): An optional parameter to specify the AWS region, can either be specified on class instatiation or via an
+                         enviornment variable.
         """
         # self.validate_aws_credentials()
         
-        region = os.getenv("AWS_REGION")
+        self.region = region or os.getenv("AWS_REGION")
         
-        batch_client = boto3.client('batch', region_name=region)
+        batch_client = boto3.client('batch', region_name=self.region)
         self.aws_batch_client_wrapper = AWSBatchClientWrapper(batch_client)
 
-        ec2_client = boto3.client('ec2', region_name=region)
+        ec2_client = boto3.client('ec2', region_name=self.region)
         self.ec2_client_wrapper = EC2ClientWrapper(ec2_client)
         
-        autoscaling_client = boto3.client ('autoscaling', region_name=region)
+        autoscaling_client = boto3.client ('autoscaling', region_name=self.region)
         self.autoscaling_wrapper = AutoscalingWrapper(autoscaling_client)
 
-        ecs_client = boto3.client('ecs', region_name=region) 
+        ecs_client = boto3.client('ecs', region_name=self.region) 
         self.ecs_wrapper = ECSWrapper(ecs_client)
+        
+        cloudwatch_client = boto3.client('logs', region_name=self.region)
+        self.cloudwatch_client = CloudWatch(cloudwatch_client)
         
 
     # def validate_aws_credentials(self):
@@ -304,7 +313,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='RUNNING')
                 return jobs
             except Exception as e:
-                return f"An error occured fetching the job queue: {e}"
+                return [f"An error occured fetching the job queue: {e}"]
     
     def get_succeeded_jobs(self, job_queue_id: str) -> dict:
         if job_queue_id: 
@@ -312,7 +321,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='SUCCEEDED')
                 return jobs
             except Exception as e:
-                return f"An error occured fetching the job queue: {e}"
+                return {f"An error occured fetching the job queue:": e}
     
     def get_failed_jobs(self, job_queue_id: str) -> dict:
         if job_queue_id: 
@@ -320,7 +329,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='FAILED')
                 return jobs
             except Exception as e:
-                return f"An error occured fetching the job queue: {e}"
+                return {f"An error occured fetching the job queue:": e}
             
     def get_runnable_jobs(self, job_queue_id: str) -> dict:
         if job_queue_id: 
@@ -328,6 +337,40 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 jobs = self.aws_batch_client_wrapper.get_jobs(job_queue_id=job_queue_id, job_status='RUNNABLE')
                 return jobs
             except Exception as e:
-                return f"An error occured fetching the job queue: {e}"
+                return {f"An error occured fetching the job queue:": e}
+            
+    def get_recent_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
+        """Returns the most recent cloudwatch logs based off the autoscaling group activity of a compute enviornment.
+
+        Args:
+            autoscaling_group_activity (dict): The activity of the compute enviornments autoscaling group.
+
+        Returns:
+            dict: _description_
+        """
+        if autoscaling_group_activity:
+            # Need to get the description of the autoscaling group to get the EC2 instance ID, use the most recent.
+            first_activity = autoscaling_group_activity[0]
+            activity_description = first_activity.get("Description") 
+            print(activity_description)
+            # regex to get the ec2 instance id from the activity description
+            ec2_id = re.search(r'i-[a-zA-Z0-9]+$', activity_description).group(0)
+            print(ec2_id)
+            
+            try:
+                log_stream = self.cloudwatch_client.get_log_streams(log_group_name='tower/forge')
+            except Exception as e:
+                return {f"An error occured fetching logs": e}
+            else:
+                log_stream_arn = ""
+                for stream in log_stream.logStreams:
+                    print(stream.logStreamName)
+                    if ec2_id in stream.logStreamName:
+                        log_stream_arn = stream.arn
+                        print(log_stream_arn)
+                events = self.cloudwatch_client.get_log_events(log_stream_name=log_stream_arn, log_group_name="tower/forge")
+                print(events)
+                return events                    
+             
             
     
