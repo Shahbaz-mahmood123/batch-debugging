@@ -36,8 +36,8 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             response = self.batch_client.describe_job_queues(jobQueues=[queue_name])
             return response
         except Exception as e:
-            print(f"An error occurred while retrieving job queue: {str(e)}")
-            return None
+            return {"ERROR": e}
+            
 
     def get_batch_compute_env(self, compute_env: list) -> dict:
         """
@@ -53,8 +53,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             response = self.batch_client.describe_compute_environments(computeEnvironments=[compute_env])
             return response
         except Exception as e:
-            print(f"An error occurred while retrieving compute environment: {str(e)}")
-            return None
+            return {"ERROR": e}
 
     def compare_auto_scaling_group(api_response, target_string):
         auto_scaling_groups = api_response.get('AutoScalingGroups', [])
@@ -67,7 +66,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
                 print(f"Match found for {target_string}")
                 break
         else:
-            print(f"No match found for {target_string}")
+            return {"No match found for": target_string}
     
     #https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/batch/client/list_jobs.html
     def get_jobs(self, job_queue_id: str, job_status: str) -> dict:
@@ -86,7 +85,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             if job_summary_list == []:
                 return f"No jobs with the status of {job_status} found"
         except Exception as e:
-            return ["An error occured fetching the running jobs:", e] 
+            return ["ERROR", e] 
         return job_response
             
         

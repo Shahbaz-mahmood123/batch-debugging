@@ -1,5 +1,4 @@
 from core.models.cloudwatch import LogGroup, LogGroupResponse, LogStream, LogStreamResponse, LogEvent, LogEventsResponse
-import pprint
 
 class CloudWatchInterface():
     def get_log_groups(self) -> LogGroupResponse:  
@@ -40,7 +39,7 @@ class CloudWatch(CloudWatchInterface):
             log_group_name (_type_, optional: Name of log group in AWS. Defaults to None.
 
         Returns:
-            LogStreamResponse: Returns log strem response object.
+            LogStreamResponse: Returns log stream response object.
         """
         if log_group_name is None:
             log_group_name = log_group.logGroupName
@@ -48,7 +47,7 @@ class CloudWatch(CloudWatchInterface):
             return f"Please pass either a log group object or the log group name"
         
         try: 
-            log_stream = self.cloudwatch_client.describe_log_streams(logGroupIdentifier=log_group_name, orderBy="LastEventTime")
+            log_stream = self.cloudwatch_client.describe_log_streams(logGroupIdentifier=log_group_name, orderBy="LastEventTime", descending=True, limit=50)
         except Exception as e:
             return f"An error occured fetching the logstream {e}"   
         else:
@@ -65,7 +64,6 @@ class CloudWatch(CloudWatchInterface):
         if log_group_name and log_stream_name:
             try:
                 all_events = self.cloudwatch_client.get_log_events(logGroupIdentifier=log_group_name,logStreamName=log_stream_name)
-                print(all_events)
             except Exception as e:
                 return f"An error occured fetching the logs for the specified log group and log strea: {e}"
             else:
