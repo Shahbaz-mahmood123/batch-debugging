@@ -52,7 +52,7 @@ class DebugAWSBatchInterface:
     def get_succeeded_jobs(self, job_queue_id: str) -> dict:
         pass
     
-    def get_recent_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
+    def get_recent_forge_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
         pass 
 
 # TODO: Need to refactor some of this code, right now we assume ECS, Batch and the ASGs have the same initial name
@@ -339,7 +339,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             except Exception as e:
                 return {f"An error occured fetching the job queue:": e}
             
-    def get_recent_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
+    def get_recent_forge_cloudwatch_logs(self, autoscaling_group_activity: dict) -> dict:
         """Returns the most recent cloudwatch logs based off the autoscaling group activity of a compute enviornment.
 
         Args:
@@ -350,12 +350,10 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """
         if autoscaling_group_activity:
             # Need to get the description of the autoscaling group to get the EC2 instance ID, use the most recent.
-            first_activity = autoscaling_group_activity[0]
+            first_activity = autoscaling_group_activity[0]          
             activity_description = first_activity.get("Description") 
-            print(activity_description)
             # regex to get the ec2 instance id from the activity description
             ec2_id = re.search(r'i-[a-zA-Z0-9]+$', activity_description).group(0)
-            print(ec2_id)
             
             try:
                 log_stream = self.cloudwatch_client.get_log_streams(log_group_name='tower/forge')
@@ -364,12 +362,11 @@ class DebugAWSBatch(DebugAWSBatchInterface):
             else:
                 log_stream_arn = ""
                 for stream in log_stream.logStreams:
-                    print(stream.logStreamName)
                     if ec2_id in stream.logStreamName:
-                        log_stream_arn = stream.arn
-                        print(log_stream_arn)
+                        log_stream_arn = stream.logStreamName
                 events = self.cloudwatch_client.get_log_events(log_stream_name=log_stream_arn, log_group_name="tower/forge")
-                print(events)
+                if events is None:
+                    return {"No logs found with the matching compute instance ID": events}
                 return events                    
              
             
