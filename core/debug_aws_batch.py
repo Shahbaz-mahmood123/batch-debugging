@@ -305,7 +305,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 else:
                     return ecs_cluster
             except Exception as e:
-                print("An error occured retrieving the ECS Cluster") 
+                return {"ERROR": e} 
                 
     def get_running_jobs(self, job_queue_id: str) -> dict:
         if job_queue_id: 
