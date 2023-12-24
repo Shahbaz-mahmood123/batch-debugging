@@ -28,7 +28,7 @@ class PulumiExecution(PulumiExecutionInterface):
         )
         self.pulumi_gcp = pulumi_gcp
         
-    def execute_gcp(self, ):
+    def execute_gcp(self):
         stack = automation.create_or_select_stack(stack_name=self.stack_name,
                                     project_name=self.project_id,
                                     program=self.pulumi_gcp.pulumi_program)
