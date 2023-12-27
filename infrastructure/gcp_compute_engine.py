@@ -1,16 +1,16 @@
 import pulumi
 import pulumi_gcp as gcp 
 from pulumi_gcp import compute
-
-class PulumiInfraConfig(): 
-    
-    def pulumi_program(self):
-        pass
+from infrastructure.pulumi_infra_config import PulumiInfraConfig
         
 class PulumiGCPInterface():
-    pass 
+    
+    def pulumi_program(self):
+        pass 
+    
+    def get_secrets(self):
+        pass
 
-        
 class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
     def __init__(self, project_id: str, location: str, name: str, region:str , zone: str, instance_name: str) -> None:
@@ -31,23 +31,25 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         pulumi.export('bucket_url', bucket.url)
         
         # Create a VPC network
-        network = gcp.compute.Network("seqera-platform",
-                                      auto_create_subnetworks=False # We have more control over the network topology when this is False
-                                      )
+        network = gcp.compute.Network(f'{self.name}-vpc',
+                                      auto_create_subnetworks=False, # We have more control over the network topology when this is False
+                                      project = self.project_id)
         
         pulumi.export('network_id', network.id)
 
         # Create a GCP subnet
-        subnet = gcp.compute.Subnetwork("seqera-platform-subnetwork",
+        subnet = gcp.compute.Subnetwork(f'{self.name}-subnet',
                                 ip_cidr_range="10.2.0.0/16",
                                 network=network.id,
-                                region="us-central1"
+                                region=self.region, 
+                                project = self.project_id
                                 )
         
         pulumi.export('subnetwork_id', subnet.id)
          
         compute_firewall = compute.Firewall(
         "firewall",
+        project = self.project_id,
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
@@ -60,11 +62,15 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         echo "Hello, World!" > index.html
         nohup python -m SimpleHTTPServer 80 &"""
 
-        instance_addr = compute.address.Address("address")
+        # instance_addr = compute.address.Address("address")
+        
         compute_instance = compute.Instance(
             self.instance_name,
+            project = self.project_id,
             machine_type="f1-micro",
+            zone = self.zone,
             metadata_startup_script=startup_script,
+            tags = ["seqera-platform"],
             boot_disk=compute.InstanceBootDiskArgs(
                 initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
                     image="debian-cloud/debian-9-stretch-v20181210"
@@ -72,18 +78,18 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             ),
             network_interfaces=[compute.InstanceNetworkInterfaceArgs(
                     network=network.id,
-                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs(
-                        nat_ip=instance_addr.address
-                    )],
+                    subnetwork = subnet.id,
+                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs() ,]
             )],
-            service_account=compute.InstanceServiceAccountArgs(
-                scopes=["https://www.googleapis.com/auth/cloud-platform"],
-            ),
+            # service_account=compute.InstanceServiceAccountArgs(
+            #     scopes=["https://www.googleapis.com/auth/cloud-platform"],
+            # ),
             #opts=ResourceOptions(depends_on=[compute_firewall]),
         )
 
         pulumi.export("instanceName", compute_instance.name)
-        pulumi.export("instanceIP", instance_addr.address)
+        pulumi.export("tags", compute_instance.labels)
+        pulumi.export("instanceIP", compute_instance.network_interfaces)
             
     def get_secrets(self):
         pass
