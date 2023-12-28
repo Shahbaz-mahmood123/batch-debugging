@@ -1,0 +1,7 @@
+project_id: $GCP-PORJECT-ID
+stack: shahbaz-dev
+location: us-central1
+name: shahbaz-pulumi-test
+zone: us-central1-a
+region: us-central1
+instance_name: shahbaz-pulumi
