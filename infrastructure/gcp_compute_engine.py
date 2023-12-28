@@ -1,7 +1,12 @@
 import pulumi
 import pulumi_gcp as gcp 
 from pulumi_gcp import compute
+#from pulumi_command import remote
+#from google.cloud import storage
+
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
+
+
         
 class PulumiGCPInterface():
     
@@ -20,7 +25,10 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         self.region = region 
         self.zone = zone
         self.instance_name = instance_name
-        
+    
+    def upload_file_to_storage(self):
+        pass
+    
     def pulumi_program(self):
 
         # Creates a GCP storage bucket with the specified name
@@ -50,16 +58,17 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         compute_firewall = compute.Firewall(
         "firewall",
         project = self.project_id,
+        source_ranges = ["0.0.0.0/0"],
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
-            ports=["22", "80"],
+            ports=["22", "80", "443"],
         )], source_tags = ["seqera-platform"]
             )   
 
         # A simple bash script that will run when the webserver is initalized
         startup_script = """#!/bin/bash
-        echo "Hello, World!" > index.html
+        echo "Hello, Seqera!" > index.html
         nohup python -m SimpleHTTPServer 80 &"""
 
         # instance_addr = compute.address.Address("address")
@@ -70,7 +79,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             machine_type="f1-micro",
             zone = self.zone,
             metadata_startup_script=startup_script,
-            tags = ["seqera-platform"],
+            tags = ["seqera-platform", "http-server"],
             boot_disk=compute.InstanceBootDiskArgs(
                 initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
                     image="debian-cloud/debian-9-stretch-v20181210"
@@ -79,13 +88,15 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             network_interfaces=[compute.InstanceNetworkInterfaceArgs(
                     network=network.id,
                     subnetwork = subnet.id,
-                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs() ,]
+                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs()]
             )],
             # service_account=compute.InstanceServiceAccountArgs(
             #     scopes=["https://www.googleapis.com/auth/cloud-platform"],
             # ),
             #opts=ResourceOptions(depends_on=[compute_firewall]),
         )
+        
+        remote.c
 
         pulumi.export("instanceName", compute_instance.name)
         pulumi.export("tags", compute_instance.labels)
