@@ -31,4 +31,13 @@ class PulumiGCPConfig(PulumiConfig):
         self.instance_name = self.configs['instance_name']
         
         super().__init__(file_path)
-        
+
+class PulumiGKEConfig(PulumiConfig):
+    
+    def __init__(self, file_path: str) -> None:
+        self.resource_name = self.configs['name']
+        self.project_id = self.configs['project_id']
+        self.zone = self.configs['zone']
+        self.region = self.configs['region']
+        self.cluster_name = self.configs['cluster_name']
+        super().__init__(file_path)
