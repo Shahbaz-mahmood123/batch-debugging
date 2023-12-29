@@ -1,4 +1,4 @@
-class ISeqeraConfig():
+class SeqeraConfigInterface():
     def fetch_secrets():
         pass 
     
@@ -6,7 +6,7 @@ class ISeqeraConfig():
         pass 
      
 
-class SeqeraConfig(ISeqeraConfig):
+class SeqeraConfig(SeqeraConfigInterface):
     
     def __init__(self, file_path: str) -> None:
         self.file_path = file_path
