@@ -32,8 +32,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             file_path (str): The local path of the file to be uploaded.
             bucket_name (str): The name of the GCP bucket to upload the file to.
         """
-        
-        
+    
         client = storage.Client()
 
         bucket = client.get_bucket(bucket_name)
@@ -69,7 +68,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
         
         # Give the service account permissions to manage objects in the bucket
-        bucket_iam_binding = gcp.storage.BucketIAMBinding("temp-bucket-binding",
+        temp_bucket_iam_binding = gcp.storage.BucketIAMBinding("temp-bucket-binding",
                                                         bucket=temp_bucket.name,
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
