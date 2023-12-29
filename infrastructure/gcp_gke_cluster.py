@@ -2,14 +2,14 @@ import pulumi
 import pulumi_gcp as gcp 
 from pulumi_infra_config import PulumiInfraConfig
 
-class IPulumiGKE():
+class PulumiGKEInterface():
     
     def get_secrets(self):
         pass
 
-class PulumiGKE(PulumiInfraConfig, IPulumiGKE):
+class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
     
-    def __init__(self, project_id: str, location: str, name: str, region:str , zone: str, cluster_name: str, cluster_type: str, nodes: dict) -> None:
+    def __init__(self, project_id: str, name: str, region:str , zone: str, cluster_name: str, cluster_type: str, nodes: dict) -> None:
         self.project_id = project_id 
         self.name = name
         self.region = region 
