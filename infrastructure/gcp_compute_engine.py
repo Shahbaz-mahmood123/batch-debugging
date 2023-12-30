@@ -1,4 +1,4 @@
-import time
+import time, os 
 import pulumi
 import pulumi_gcp as gcp 
 from pulumi_gcp import compute
@@ -6,7 +6,7 @@ from pulumi_gcp import compute
 from google.cloud import storage
 
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
-
+from infrastructure.seqera_platform import SeqeraGCPConfig
 
 class PulumiGCPInterface():
     
@@ -26,14 +26,13 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         self.zone = zone
         self.instance_name = instance_name
     
-    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str) -> None:
+    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
         """Uploads a file to a GCP bucket.
         Args:
             file_path (str): The local path of the file to be uploaded.
             bucket_name (str): The name of the GCP bucket to upload the file to.
         """
-        
-        
+    
         client = storage.Client()
 
         bucket = client.get_bucket(bucket_name)
@@ -57,7 +56,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         temp_bucket = gcp.storage.Bucket(temp_bucket_name, name=temp_bucket_name, location=self.location, project=self.project_id, force_destroy=True)
                     
                 
-        service_account = gcp.serviceaccount.Account("my-service-account",
+        service_account = gcp.serviceaccount.Account("seqera-pulumi-sa",
                                              account_id="my-service-account",
                                              display_name="My Service Account", 
                                              project=self.project_id)
@@ -69,7 +68,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
         
         # Give the service account permissions to manage objects in the bucket
-        bucket_iam_binding = gcp.storage.BucketIAMBinding("temp-bucket-binding",
+        temp_bucket_iam_binding = gcp.storage.BucketIAMBinding("temp-bucket-binding",
                                                         bucket=temp_bucket.name,
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
@@ -105,50 +104,100 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             ports=["22", "80", "443"],
         )], source_tags = ["seqera-platform"]
             )   
+        current_working_directory = os.getcwd()
         
+        docker_compose = f"{current_working_directory}/docker-compose.yml"
         
-        time.sleep(10)
-        docker_compose = "requirements.txt"
+        tower_env = f"{current_working_directory}/tower.env"
         
-        tower_env = ""
+        tower_yml = f"{current_working_directory}/tower.yml"
         
-        tower_yml = ""
+        groundswell_yml = f"{current_working_directory}/groundswell.env"
         
-        groundswell_yml = ""
+        docker_compose_upload = gcp.storage.BucketObject('docker-compose',
+                                     bucket=temp_bucket.name,
+                                     source=pulumi.FileAsset(docker_compose),
+                                     name='docker-compose.yml',
+                                     content_type='application/x-yaml')
         
-        self.upload_to_gcp_bucket(file_path=docker_compose, bucket_name=temp_bucket_name)
+        tower_env_upload = gcp.storage.BucketObject('tower-env',
+                                     bucket=temp_bucket.name,
+                                     name='tower.env',
+                                     source=pulumi.FileAsset(tower_env))
 
+        tower_yml_upload = gcp.storage.BucketObject('tower-yml',
+                                     bucket=temp_bucket.name,
+                                     source=pulumi.FileAsset(tower_yml),
+                                     name='tower.yml',
+                                     content_type='application/x-yaml')
+        
+        groundswell_upload = gcp.storage.BucketObject('groundswell',
+                                     bucket=temp_bucket.name,
+                                     name='groundswell.env',
+                                     source=pulumi.FileAsset(groundswell_yml))
+        
+        # try:
+        #     file_upload = self.upload_to_gcp_bucket(file_path=docker_compose, bucket_name=temp_bucket_name)
+        #     file_upload = self.upload_to_gcp_bucket(file_path=tower_env, bucket_name=temp_bucket_name)
+        #     file_upload = self.upload_to_gcp_bucket(file_path=tower_yml, bucket_name=temp_bucket_name)
+        #     file_upload = self.upload_to_gcp_bucket(file_path=groundswell_yml, bucket_name=temp_bucket_name)
+        # except Exception as e:
+        #     print(f'Error:{e}')
+            
         # A simple bash script that will run when the webserver is initalized
         startup_script = f"""#!/bin/bash
         
-        
         BUCKET_NAME="{temp_bucket_name}"
-        OBJECT_NAME="{docker_compose}"
+        DOCKER_COMPOSE="docker-compose.yml"
+        TOWER_ENV="tower.env"
+        TOWER_YML="tower.yml"
+        GROUNDSWELL="groundswell.env"
 
         # Set the destination directory on the VM
-        DESTINATION_DIR="./"
+        DESTINATION_DIR="/home/seqera"
 
         # Ensure the destination directory exists
         mkdir -p $DESTINATION_DIR
 
         # Download the file using gsutil
-        gsutil cp gs://$BUCKET_NAME/$OBJECT_NAME $DESTINATION_DIR
+        gsutil cp gs://$BUCKET_NAME/$DOCKER_COMPOSE $DESTINATION_DIR
+        gsutil cp gs://$BUCKET_NAME/$TOWER_ENV $DESTINATION_DIR
+        gsutil cp gs://$BUCKET_NAME/$TOWER_YML $DESTINATION_DIR
+        gsutil cp gs://$BUCKET_NAME/$GROUNDSWELL $DESTINATION_DIR
 
+        # Add Docker's official GPG key:
+        sudo apt-get -y update
+        sudo apt-get -y install ca-certificates curl gnupg
+        sudo install -m 0755 -d /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+        # Add the repository to Apt sources:
+        echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/debian \
+        $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+        # Install Docker
+        sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        
+        #cd /home/seqera 
+        #docker compose up -d 
+        
         echo "Hello, Seqera!" > index.html
         nohup python -m SimpleHTTPServer 80 &"""
 
-        # instance_addr = compute.address.Address("address")
         
         compute_instance = compute.Instance(
             self.instance_name,
             project = self.project_id,
-            machine_type="f1-micro",
+            machine_type="e2-standard-2",
             zone = self.zone,
             metadata_startup_script=startup_script,
             tags = ["seqera-platform", "http-server"],
             boot_disk=compute.InstanceBootDiskArgs(
                 initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
-                    image="debian-cloud/debian-9-stretch-v20181210"
+                    image="debian-12-bookworm-v20231212"
                 )
             ),
             network_interfaces=[compute.InstanceNetworkInterfaceArgs(

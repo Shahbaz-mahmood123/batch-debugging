@@ -58,5 +58,8 @@ class PulumiExecution(PulumiExecutionInterface):
     
     def refresh(self):
         self.stack.refresh(on_output=print)
+        
+    def cancel(self):
+        self.stack.cancel()
     
         

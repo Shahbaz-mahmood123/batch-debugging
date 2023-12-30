@@ -1,3 +1,5 @@
+import yaml
+
 class SeqeraConfigInterface():
     def fetch_secrets():
         pass 
@@ -21,8 +23,13 @@ class SeqeraConfig(SeqeraConfigInterface):
 class SeqeraGCPConfig(SeqeraConfig):
     
     def __init__(self, file_path: str) -> None:
-       self.file_path = file_path
-       super().__init__(file_path)
+        self.file_path = file_path
+        with open(file_path, 'r') as file:
+            self.configs = yaml.safe_load(file)
+            
+        
+        
+        super().__init__(file_path)
        
     
     def fetch_secrets(self):
