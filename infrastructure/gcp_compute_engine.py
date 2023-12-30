@@ -1,4 +1,4 @@
-import time
+import time, os 
 import pulumi
 import pulumi_gcp as gcp 
 from pulumi_gcp import compute
@@ -104,14 +104,15 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             ports=["22", "80", "443"],
         )], source_tags = ["seqera-platform"]
             )   
+        current_working_directory = os.getcwd()
         
-        docker_compose = "./docker-compose.yml"
+        docker_compose = f"{current_working_directory}/docker-compose.yml"
         
-        tower_env = "./tower.env"
+        tower_env = f"{current_working_directory}/tower.env"
         
-        tower_yml = "./tower.yml"
+        tower_yml = f"{current_working_directory}/tower.yml"
         
-        groundswell_yml = "./groundswell.env"
+        groundswell_yml = f"{current_working_directory}/groundswell.env"
         
         docker_compose_upload = gcp.storage.BucketObject('docker-compose',
                                      bucket=temp_bucket.name,
@@ -179,6 +180,9 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         sudo apt-get update
         # Install Docker
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        
+        #cd /home/seqera 
+        #docker compose up -d 
         
         echo "Hello, Seqera!" > index.html
         nohup python -m SimpleHTTPServer 80 &"""
