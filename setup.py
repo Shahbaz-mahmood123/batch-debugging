@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.01'
+VERSION = '0.1.2'
 DESCRIPTION = 'A SDK that helps debug batch compute enviornments in AWS, GCP and Azure and Kubernetes'
 LONG_DESCRIPTION = 'A package that makes it easier to debug issues with batch compute enviornments in GCP, AWS and Azure'
 
@@ -16,7 +16,11 @@ setup(
     install_requires=[
         'httpx',
         'attrs',
-        'boto3'
+        'boto3',
+        'pulumi',
+        'pulumi-gcp',
+        'google-cloud-batch',
+        'google-cloud-storage'
         ],
     keywords='conversion',
     classifiers= [
