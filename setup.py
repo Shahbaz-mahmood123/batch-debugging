@@ -21,6 +21,7 @@ setup(
         'pulumi-gcp',
         'google-cloud-batch',
         'google-cloud-storage'
+
         ],
     keywords='conversion',
     classifiers= [
