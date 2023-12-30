@@ -26,7 +26,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         self.zone = zone
         self.instance_name = instance_name
     
-    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str, platform_config: SeqeraGCPConfig ) -> None:
+    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
         """Uploads a file to a GCP bucket.
         Args:
             file_path (str): The local path of the file to be uploaded.
