@@ -1,7 +1,9 @@
 import time, os 
+
 import pulumi
 import pulumi_gcp as gcp 
 from pulumi_gcp import compute
+import pulumi_command as command
 #from pulumi_command import remote
 from google.cloud import storage
 
@@ -57,8 +59,8 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                     
                 
         service_account = gcp.serviceaccount.Account("seqera-pulumi-sa",
-                                             account_id="my-service-account",
-                                             display_name="My Service Account", 
+                                             account_id="seqera-pulumi-sa",
+                                             display_name="Seqera Pulumi SA", 
                                              project=self.project_id)
         
         # Give the service account permissions to manage objects in the bucket
@@ -104,6 +106,19 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             ports=["22", "80", "443"],
         )], source_tags = ["seqera-platform"]
             )   
+        
+        # Create a static IP address.
+        static_ip = gcp.compute.Address("static-ip", region="us-central1")
+
+
+        # TODO: pull in secrets from secret manager and populate files
+        local_command = command.local.Command(
+            "echo-command",
+            create="echo 'Hello, World!'",
+        )
+        # Export the standard output of the command.
+        pulumi.export('stdout', local_command.stdout)
+        
         current_working_directory = os.getcwd()
         
         docker_compose = f"{current_working_directory}/docker-compose.yml"
@@ -203,7 +218,8 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             network_interfaces=[compute.InstanceNetworkInterfaceArgs(
                     network=network.id,
                     subnetwork = subnet.id,
-                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs()]
+                    access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs(
+                        nat_ip=static_ip.address)]
             )],
             service_account=gcp.compute.InstanceServiceAccountArgs(
                 email=service_account.email,
@@ -213,6 +229,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         pulumi.export("instanceName", compute_instance.name)
         pulumi.export("tags", compute_instance.labels)
         pulumi.export("instanceIP", compute_instance.network_interfaces)
+        pulumi.export('static_ip_address', static_ip.address)
             
     def get_secrets(self):
         pass
