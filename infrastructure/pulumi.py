@@ -42,6 +42,8 @@ class PulumiExecution(PulumiExecutionInterface):
                             program=self.pulumi_program.pulumi_program,
                             opts=LocalWorkspaceOptions(
                                         #secrets_provider=SECRET_PROVIDER,
+                                        #The PULUMI_CONFIG_PASSPHRASE since pulumi stack is encrypted by default
+                                        env_vars = {'PULUMI_CONFIG_PASSPHRASE': self.stack_name},
                                         work_dir=self.work_dir,
                                         project_settings=self.project_settings))
         

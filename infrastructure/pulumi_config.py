@@ -12,7 +12,9 @@ class PulumiConfig(PulumiConfigInterface):
             configs = yaml.safe_load(file) 
         
         self.stack_name = configs['stack']
-        
+        self.provider = configs['provider']
+        self.type = configs['type']
+
     def validate_yaml(self):
         pass
         
@@ -31,7 +33,7 @@ class PulumiGCPConfig(PulumiConfig):
         self.instance_name = self.configs['instance_name']
         
         super().__init__(file_path)
-
+    
 class PulumiGKEConfig(PulumiConfig):
     
     def __init__(self, file_path: str) -> None:
