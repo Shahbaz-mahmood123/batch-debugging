@@ -116,6 +116,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             "echo-command",
             create="echo 'Hello, World!'",
         )
+        
         # Export the standard output of the command.
         pulumi.export('stdout', local_command.stdout)
         

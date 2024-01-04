@@ -1,4 +1,9 @@
 #custom 
+docker-compose.yml
+groundswell.env
+tower.env
+tower.yml
+
 
 random-files/
 
