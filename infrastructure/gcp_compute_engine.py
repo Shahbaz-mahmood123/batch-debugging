@@ -6,6 +6,8 @@ from pulumi_gcp import compute
 import pulumi_command as command
 #from pulumi_command import remote
 from google.cloud import storage
+# from google.cloud import secretmanager
+from google.cloud.exceptions import NotFound, Forbidden
 
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
 from infrastructure.seqera_platform import SeqeraGCPConfig
@@ -20,14 +22,20 @@ class PulumiGCPInterface():
 
 class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
-    def __init__(self, project_id: str, location: str, name: str, region:str , zone: str, instance_name: str) -> None:
+    def __init__(self, project_id: str, location: str, name: str, region:str, 
+                zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
+                groundswell_secret: str) -> None:
         self.project_id = project_id 
         self.location = location
         self.name = name
         self.region = region 
         self.zone = zone
         self.instance_name = instance_name
-    
+        self.tower_env_secret = tower_env_secret
+        self.tower_yaml_secret = tower_yaml_secret
+        self.harbor_creds = harbor_creds
+        self.groundswell_secret = groundswell_secret
+        
     def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
         """Uploads a file to a GCP bucket.
         Args:
@@ -108,25 +116,55 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             )   
         
         # Create a static IP address.
-        static_ip = gcp.compute.Address("static-ip", region="us-central1")
+        static_ip = gcp.compute.Address("static-ip", region="us-central1",  project=self.project_id)
 
+        
+        # Get secrets from secret manager 
+        tower_env_version = gcp.secretmanager.get_secret_version(secret=self.tower_env_secret, project=self.project_id)
+        tower_yml_version = gcp.secretmanager.get_secret_version(secret=self.tower_yaml_secret, project=self.project_id)
+        groundswell_version = gcp.secretmanager.get_secret_version(secret=self.groundswell_secret, project=self.project_id)
+        docker_creds_version = gcp.secretmanager.get_secret_version(secret=self.harbor_creds, project=self.project_id)
 
-        # TODO: pull in secrets from secret manager and populate files
-        local_command = command.local.Command(
+        
+        # pulumi.export('tower_env', tower_env_version.secret_data)
+        # pulumi.export('tower_yml', tower_yml_version.secret_data)
+        # pulumi.export('docker_creds', docker_creds_version.secret_data)
+        
+        # TODO: sed is using the mac version of sed need to replace that with linux
+        populate_tower_files_script = f"""
+        #!/bin/bash
+        echo "{tower_env_version.secret_data}" | tee tower.env
+        echo "{tower_yml_version.secret_data}" | tee tower.yml
+        echo "{groundswell_version.secret_data}" | tee groundswell.env
+        
+        # Check if the file exists
+        config_file="./tower.env" 
+        if [ -f "$config_file" ]; then
+            # Replace the TOWER_SERVER_URL value
+            sed -i '' "s|TOWER_SERVER_URL=.*|TOWER_SERVER_URL=http://$STATIC_IP|" "$config_file"
+            echo "TOWER_SERVER_URL replaced with: http://$STATIC_IP"
+        else
+            echo "Config file not found: $config_file"
+        fi
+        """
+
+        populate_tower_files = command.local.Command(
             "echo-command",
-            create="echo 'Hello, World!'",
+            create=populate_tower_files_script,
+            environment={
+                "STATIC_IP": static_ip.address
+            },
+            # triggers={"alwaysRun": str(True)},
         )
         
         # Export the standard output of the command.
-        pulumi.export('stdout', local_command.stdout)
+        pulumi.export('stdout', populate_tower_files.stdout)
         
-        current_working_directory = os.getcwd()
-        
-        docker_compose = f"{current_working_directory}/docker-compose.yml"
-        
-        tower_env = f"{current_working_directory}/tower.env"
-        
-        tower_yml = f"{current_working_directory}/tower.yml"
+        if  pulumi.runtime.is_dry_run() != True:
+            current_working_directory = os.getcwd()
+            docker_compose = f"{current_working_directory}/docker-compose.yml"
+            tower_env = f"{current_working_directory}/tower.env"
+            tower_yml = f"{current_working_directory}/tower.yml"
         
         groundswell_yml = f"{current_working_directory}/groundswell.env"
         
@@ -234,3 +272,26 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             
     def get_secrets(self):
         pass
+            # try:
+            #     # Create the Secret Manager client
+            #     client = secretmanager.SecretManagerServiceClient()
+
+            #     # Build the secret name
+            #     secret_name = f"projects/{self.project_id}/secrets/{secret_id}/versions/{version_id}"
+
+            #     # Access the secret version
+            #     response = client.access_secret_version(name=secret_name)
+
+            #     # Get the secret data
+            #     secret_data = response.payload.data.decode("UTF-8")
+
+            #     return secret_data
+
+            # except NotFound:
+            #     raise ValueError(f"Secret '{secret_id}' not found in project '{project_id}'.")
+
+            # except Forbidden:
+            #     raise PermissionError(f"Permission denied. Ensure that the service account has access to the secret.")
+
+            # except Exception as e:
+            #     raise RuntimeError(f"Error fetching secret: {e}")

@@ -7,3 +7,7 @@ name: shahbaz-pulumi-test
 zone: us-central1-a
 region: us-central1
 instance_name: shahbaz-pulumi
+tower_env_secret: $GCP-SECRET-ID
+tower_yaml_secret: $GCP-SECRET-ID
+docker_creds: $GCP-SECRET-ID
+groundswell_secret: $GCP-SECRET-ID

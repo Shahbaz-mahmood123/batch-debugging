@@ -31,6 +31,10 @@ class PulumiGCPConfig(PulumiConfig):
         self.zone = self.configs['zone']
         self.region = self.configs['region']
         self.instance_name = self.configs['instance_name']
+        self.tower_env_secret = self.configs['tower_env_secret']
+        self.tower_yaml_secret = self.configs['tower_yaml_secret']
+        self.harbor_creds = self.configs['harbor_creds']
+        self.groundswell_secret = self.configs['groundswell_secret']
         
         super().__init__(file_path)
     

@@ -30,17 +30,17 @@ class SeqeraComputeEnvsWrapper(SeqeraComputeEnvsWrapperInterface):
             workspace_id: The workspace id for Seqera platform.
         """
             
-        self.workspace_id = os.getenv('WORKSPACE_ID')
-        if not self.workspace_id:
-              raise ValueError("Please set the WORKSPACE_ID in your enviornment variables")
+        self.workspace_id = os.getenv('WORKSPACE_ID') or workspace_id
+        # if not self.workspace_id:
+        #       raise ValueError("Please set the WORKSPACE_ID in your enviornment variables")
         
         
         self.platform_token = platform_token or os.getenv('PLATFORM_TOKEN')
         self.platform_url = platform_url or os.getenv('PLATFORM_URL')
 
         # Check if both platform_token and platform_url are provided  
-        if not self.platform_token or not self.platform_url:
-            raise ValueError("Both platform_token and platform_url are required.")
+        # if not self.platform_token or not self.platform_url:
+        #     raise ValueError("Both platform_token and platform_url are required.")
         
         self.client = AuthenticatedClient(token=self.platform_token, base_url=self.platform_url)
 
