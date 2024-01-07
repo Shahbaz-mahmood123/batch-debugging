@@ -63,5 +63,8 @@ class PulumiExecution(PulumiExecutionInterface):
         
     def cancel(self):
         self.stack.cancel()
+        
+    def destroy_stack(self):
+        self.stack.destroy(on_output=print)
     
         

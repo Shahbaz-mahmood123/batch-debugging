@@ -9,14 +9,15 @@ class PulumiGKEInterface():
 
 class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
     
-    def __init__(self, project_id: str, name: str, region:str , zone: str, cluster_name: str, cluster_type: str, nodes: dict ,node_count: int) -> None:
+    def __init__(self, project_id: str, name: str, region:str , zone: str, cluster_name: str, cluster_type: str, nodes: dict,
+                 min_node_count: int, max_node_count: int) -> None:
         self.project_id = project_id 
         self.name = name
         self.region = region 
         self.zone = zone
         self.cluster_name = cluster_name
         self.cluster_type = cluster_type
-        self.node_count = node_count
+        self.min_node_count = min_node_count
         self.nodes = nodes 
         
     def pulumi_program(self):
