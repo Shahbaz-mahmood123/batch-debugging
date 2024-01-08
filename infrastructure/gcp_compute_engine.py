@@ -160,35 +160,36 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # Export the standard output of the command.
         pulumi.export('stdout', populate_tower_files.stdout)
         
+        #If user does a preview ignore this and only execute on a pulumi up, not sure if I should require the user 
+        # to have the config files present in the working directory or not show these four resources being created.  
         if  pulumi.runtime.is_dry_run() != True:
             current_working_directory = os.getcwd()
             docker_compose = f"{current_working_directory}/docker-compose.yml"
             tower_env = f"{current_working_directory}/tower.env"
             tower_yml = f"{current_working_directory}/tower.yml"
-        
-        groundswell_yml = f"{current_working_directory}/groundswell.env"
-        
-        docker_compose_upload = gcp.storage.BucketObject('docker-compose',
-                                     bucket=temp_bucket.name,
-                                     source=pulumi.FileAsset(docker_compose),
-                                     name='docker-compose.yml',
-                                     content_type='application/x-yaml')
-        
-        tower_env_upload = gcp.storage.BucketObject('tower-env',
-                                     bucket=temp_bucket.name,
-                                     name='tower.env',
-                                     source=pulumi.FileAsset(tower_env))
+            groundswell_yml = f"{current_working_directory}/groundswell.env"
+            
+            docker_compose_upload = gcp.storage.BucketObject('docker-compose',
+                                        bucket=temp_bucket.name,
+                                        source=pulumi.FileAsset(docker_compose),
+                                        name='docker-compose.yml',
+                                        content_type='application/x-yaml')
+            
+            tower_env_upload = gcp.storage.BucketObject('tower-env',
+                                        bucket=temp_bucket.name,
+                                        name='tower.env',
+                                        source=pulumi.FileAsset(tower_env))
 
-        tower_yml_upload = gcp.storage.BucketObject('tower-yml',
-                                     bucket=temp_bucket.name,
-                                     source=pulumi.FileAsset(tower_yml),
-                                     name='tower.yml',
-                                     content_type='application/x-yaml')
-        
-        groundswell_upload = gcp.storage.BucketObject('groundswell',
-                                     bucket=temp_bucket.name,
-                                     name='groundswell.env',
-                                     source=pulumi.FileAsset(groundswell_yml))
+            tower_yml_upload = gcp.storage.BucketObject('tower-yml',
+                                        bucket=temp_bucket.name,
+                                        source=pulumi.FileAsset(tower_yml),
+                                        name='tower.yml',
+                                        content_type='application/x-yaml')
+            
+            groundswell_upload = gcp.storage.BucketObject('groundswell',
+                                        bucket=temp_bucket.name,
+                                        name='groundswell.env',
+                                        source=pulumi.FileAsset(groundswell_yml))
         
         # try:
         #     file_upload = self.upload_to_gcp_bucket(file_path=docker_compose, bucket_name=temp_bucket_name)
