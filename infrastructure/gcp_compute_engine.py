@@ -24,7 +24,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
     def __init__(self, project_id: str, location: str, name: str, region:str, 
                 zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
-                groundswell_secret: str) -> None:
+                groundswell_secret: str, source_ranges: dict, tags: dict, source_tags: dict) -> None:
         self.project_id = project_id 
         self.location = location
         self.name = name
@@ -35,6 +35,9 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         self.tower_yaml_secret = tower_yaml_secret
         self.harbor_creds = harbor_creds
         self.groundswell_secret = groundswell_secret
+        self.source_ranges = source_ranges
+        self.tags = tags
+        self.source_tags = source_tags
         
     def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
         """Uploads a file to a GCP bucket.
@@ -107,12 +110,12 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         compute_firewall = compute.Firewall(
         "firewall",
         project = self.project_id,
-        source_ranges = ["0.0.0.0/0"],
+        source_ranges = self.source_ranges,
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
             ports=["22", "80", "443"],
-        )], source_tags = ["seqera-platform"]
+        )], source_tags = self.source_tags
             )   
         
         # Create a static IP address.
@@ -249,7 +252,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             machine_type="e2-standard-2",
             zone = self.zone,
             metadata_startup_script=startup_script,
-            tags = ["seqera-platform", "http-server"],
+            tags = self.tags,
             boot_disk=compute.InstanceBootDiskArgs(
                 initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
                     image="debian-12-bookworm-v20231212"
