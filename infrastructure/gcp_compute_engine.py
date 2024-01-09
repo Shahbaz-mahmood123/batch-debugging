@@ -86,16 +86,12 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
         
-        # Export the bucket's URL
-        pulumi.export('bucket_url', bucket.url)
-        pulumi.export('temp_bucket_url', temp_bucket.url)
+
         
         # Create a VPC network
         network = gcp.compute.Network(f'{self.name}-vpc',
                                       auto_create_subnetworks=False, # We have more control over the network topology when this is False
                                       project = self.project_id)
-        
-        pulumi.export('network_id', network.id)
 
         # Create a GCP subnet
         subnet = gcp.compute.Subnetwork(f'{self.name}-subnet',
@@ -105,7 +101,6 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                 project = self.project_id
                                 )
         
-        pulumi.export('subnetwork_id', subnet.id)
          
         compute_firewall = compute.Firewall(
         "firewall",
@@ -134,13 +129,14 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # pulumi.export('docker_creds', docker_creds_version.secret_data)
         
         # TODO: sed is using the mac version of sed need to replace that with linux
+        # https://stackoverflow.com/questions/4247068/sed-command-with-i-option-failing-on-mac-but-works-on-linux
         populate_tower_files_script = f"""
         #!/bin/bash
         echo "{tower_env_version.secret_data}" | tee tower.env
         echo "{tower_yml_version.secret_data}" | tee tower.yml
         echo "{groundswell_version.secret_data}" | tee groundswell.env
         
-        # Check if the file exists
+        # Check if the file exists        
         config_file="./tower.env" 
         if [ -f "$config_file" ]; then
             # Replace the TOWER_SERVER_URL value
@@ -159,9 +155,6 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             },
             # triggers={"alwaysRun": str(True)},
         )
-        
-        # Export the standard output of the command.
-        pulumi.export('stdout', populate_tower_files.stdout)
         
         #If user does a preview ignore this and only execute on a pulumi up, not sure if I should require the user 
         # to have the config files present in the working directory or not show these four resources being created.  
@@ -269,11 +262,17 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
             ))
         
+        # Export the bucket's URL
+        pulumi.export('network_id', network.id)
+        pulumi.export('bucket_url', bucket.url)
+        pulumi.export('temp_bucket_url', temp_bucket.url)
         pulumi.export("instanceName", compute_instance.name)
         pulumi.export("tags", compute_instance.labels)
         pulumi.export("instanceIP", compute_instance.network_interfaces)
         pulumi.export('static_ip_address', static_ip.address)
-            
+        pulumi.export('subnetwork_id', subnet.id)
+        pulumi.export('config files populate', populate_tower_files.stdout)
+        
     def get_secrets(self):
         pass
             # try:

@@ -57,9 +57,12 @@ class PulumiGKEConfig(PulumiConfig):
         self.zone = self.configs['zone']
         self.region = self.configs['region']
         self.cluster_name = self.configs['cluster_name']
+        self.cluster_type = self.configs['cluster_type']
+        self.min_node_count = self.configs['min_node_count'] 
+        self.min_node_count = self.configs['max_node_count']
+        self.nodes = self.configs['nodes'] 
         super().__init__(file_path)
         
         ##TODO: Need to do some validation on the yaml maybe? 
         def validate_yaml(self):
             pass
-    
