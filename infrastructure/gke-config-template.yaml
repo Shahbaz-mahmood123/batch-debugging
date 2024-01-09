@@ -1,0 +1,13 @@
+project_id: $GCP-PORJECT-ID
+stack: shahbaz-dev
+provider: gcp
+type: minimal
+name: shahbaz-pulumi-test
+zone: us-central1-a
+region: us-central1
+cluster_name: shahbaz-pulumi
+cluster_type: standard
+min_node_count: 1
+max_node_count: 2
+nodes: node
+  

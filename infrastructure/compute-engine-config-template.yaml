@@ -1,0 +1,19 @@
+project_id: $GCP-PORJECT-ID
+stack: shahbaz-dev
+provider: gcp
+type: minimal
+location: us-central1
+name: shahbaz-pulumi-test
+zone: us-central1-a
+region: us-central1
+instance_name: shahbaz-pulumi
+secrets:
+  tower_env_secret: $GCP-SECRET-ID
+  tower_yaml_secret: $GCP-SECRET-ID
+  docker_creds: $GCP-SECRET-ID
+  groundswell_secret: $GCP-SECRET-ID
+network:
+  source_ranges: ["0.0.0.0/0"]
+  tags: ["seqera-platform"]
+compute-engine:
+  tags: ["seqera-platform", "http-server"]

@@ -18,12 +18,30 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
         self.cluster_name = cluster_name
         self.cluster_type = cluster_type
         self.min_node_count = min_node_count
+        self.min_node_count = max_node_count
         self.nodes = nodes 
         
-    def pulumi_program(self):
-        # Create a GKE cluster
-        gke_cluster = gcp.container.Cluster(self.cluster_name,
-            initial_node_count=1,
+    def pulumi_program(self):        
+        
+        # Create a VPC 
+        network = gcp.compute.Network(f'{self.name}-vpc',
+                                      auto_create_subnetworks=False, # We have more control over the network topology when this is False
+                                      project = self.project_id)
+        
+        pulumi.export('network_id', network.id)
+
+        # Create a GCP subnet
+        subnet = gcp.compute.Subnetwork(f'{self.name}-subnet',
+                                ip_cidr_range="10.2.0.0/16",
+                                network=network.id,
+                                region=self.region, 
+                                project = self.project_id
+                                )
+        
+        gke_cluster = gcp.container.Cluster(
+            self.cluster_name,
+            network=network.id,
+            subnetwork=subnet.id,
             # Define the node config for the cluster
             node_config=gcp.container.ClusterNodeConfigArgs(
                 machine_type="n1-standard-1",  # Standard machine type
@@ -48,8 +66,8 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
                 machine_type="n1-standard-1", # Specify the machine type for the nodes.
             ),
             autoscaling=gcp.container.NodePoolAutoscalingArgs(
-                min_node_count=1,
-                max_node_count=3,
+                min_node_count=self.min_node_count,
+                max_node_count=self.max_node_count,
             ),
             management=gcp.container.NodePoolManagementArgs(
                 auto_repair=True,

@@ -24,7 +24,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
     def __init__(self, project_id: str, location: str, name: str, region:str, 
                 zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
-                groundswell_secret: str) -> None:
+                groundswell_secret: str, source_ranges: dict, tags: dict, source_tags: dict) -> None:
         self.project_id = project_id 
         self.location = location
         self.name = name
@@ -35,6 +35,9 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         self.tower_yaml_secret = tower_yaml_secret
         self.harbor_creds = harbor_creds
         self.groundswell_secret = groundswell_secret
+        self.source_ranges = source_ranges
+        self.tags = tags
+        self.source_tags = source_tags
         
     def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
         """Uploads a file to a GCP bucket.
@@ -83,16 +86,12 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
         
-        # Export the bucket's URL
-        pulumi.export('bucket_url', bucket.url)
-        pulumi.export('temp_bucket_url', temp_bucket.url)
+
         
         # Create a VPC network
         network = gcp.compute.Network(f'{self.name}-vpc',
                                       auto_create_subnetworks=False, # We have more control over the network topology when this is False
                                       project = self.project_id)
-        
-        pulumi.export('network_id', network.id)
 
         # Create a GCP subnet
         subnet = gcp.compute.Subnetwork(f'{self.name}-subnet',
@@ -102,17 +101,16 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                 project = self.project_id
                                 )
         
-        pulumi.export('subnetwork_id', subnet.id)
          
         compute_firewall = compute.Firewall(
         "firewall",
         project = self.project_id,
-        source_ranges = ["0.0.0.0/0"],
+        source_ranges = self.source_ranges,
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
             ports=["22", "80", "443"],
-        )], source_tags = ["seqera-platform"]
+        )], source_tags = self.source_tags
             )   
         
         # Create a static IP address.
@@ -131,13 +129,14 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # pulumi.export('docker_creds', docker_creds_version.secret_data)
         
         # TODO: sed is using the mac version of sed need to replace that with linux
+        # https://stackoverflow.com/questions/4247068/sed-command-with-i-option-failing-on-mac-but-works-on-linux
         populate_tower_files_script = f"""
         #!/bin/bash
         echo "{tower_env_version.secret_data}" | tee tower.env
         echo "{tower_yml_version.secret_data}" | tee tower.yml
         echo "{groundswell_version.secret_data}" | tee groundswell.env
         
-        # Check if the file exists
+        # Check if the file exists        
         config_file="./tower.env" 
         if [ -f "$config_file" ]; then
             # Replace the TOWER_SERVER_URL value
@@ -157,38 +156,36 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             # triggers={"alwaysRun": str(True)},
         )
         
-        # Export the standard output of the command.
-        pulumi.export('stdout', populate_tower_files.stdout)
-        
+        #If user does a preview ignore this and only execute on a pulumi up, not sure if I should require the user 
+        # to have the config files present in the working directory or not show these four resources being created.  
         if  pulumi.runtime.is_dry_run() != True:
             current_working_directory = os.getcwd()
             docker_compose = f"{current_working_directory}/docker-compose.yml"
             tower_env = f"{current_working_directory}/tower.env"
             tower_yml = f"{current_working_directory}/tower.yml"
-        
-        groundswell_yml = f"{current_working_directory}/groundswell.env"
-        
-        docker_compose_upload = gcp.storage.BucketObject('docker-compose',
-                                     bucket=temp_bucket.name,
-                                     source=pulumi.FileAsset(docker_compose),
-                                     name='docker-compose.yml',
-                                     content_type='application/x-yaml')
-        
-        tower_env_upload = gcp.storage.BucketObject('tower-env',
-                                     bucket=temp_bucket.name,
-                                     name='tower.env',
-                                     source=pulumi.FileAsset(tower_env))
+            groundswell_yml = f"{current_working_directory}/groundswell.env"
+            
+            docker_compose_upload = gcp.storage.BucketObject('docker-compose',
+                                        bucket=temp_bucket.name,
+                                        source=pulumi.FileAsset(docker_compose),
+                                        name='docker-compose.yml',
+                                        content_type='application/x-yaml')
+            
+            tower_env_upload = gcp.storage.BucketObject('tower-env',
+                                        bucket=temp_bucket.name,
+                                        name='tower.env',
+                                        source=pulumi.FileAsset(tower_env))
 
-        tower_yml_upload = gcp.storage.BucketObject('tower-yml',
-                                     bucket=temp_bucket.name,
-                                     source=pulumi.FileAsset(tower_yml),
-                                     name='tower.yml',
-                                     content_type='application/x-yaml')
-        
-        groundswell_upload = gcp.storage.BucketObject('groundswell',
-                                     bucket=temp_bucket.name,
-                                     name='groundswell.env',
-                                     source=pulumi.FileAsset(groundswell_yml))
+            tower_yml_upload = gcp.storage.BucketObject('tower-yml',
+                                        bucket=temp_bucket.name,
+                                        source=pulumi.FileAsset(tower_yml),
+                                        name='tower.yml',
+                                        content_type='application/x-yaml')
+            
+            groundswell_upload = gcp.storage.BucketObject('groundswell',
+                                        bucket=temp_bucket.name,
+                                        name='groundswell.env',
+                                        source=pulumi.FileAsset(groundswell_yml))
         
         # try:
         #     file_upload = self.upload_to_gcp_bucket(file_path=docker_compose, bucket_name=temp_bucket_name)
@@ -248,7 +245,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             machine_type="e2-standard-2",
             zone = self.zone,
             metadata_startup_script=startup_script,
-            tags = ["seqera-platform", "http-server"],
+            tags = self.tags,
             boot_disk=compute.InstanceBootDiskArgs(
                 initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
                     image="debian-12-bookworm-v20231212"
@@ -265,11 +262,17 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
             ))
         
+        # Export the bucket's URL
+        pulumi.export('network_id', network.id)
+        pulumi.export('bucket_url', bucket.url)
+        pulumi.export('temp_bucket_url', temp_bucket.url)
         pulumi.export("instanceName", compute_instance.name)
         pulumi.export("tags", compute_instance.labels)
         pulumi.export("instanceIP", compute_instance.network_interfaces)
         pulumi.export('static_ip_address', static_ip.address)
-            
+        pulumi.export('subnetwork_id', subnet.id)
+        pulumi.export('config files populate', populate_tower_files.stdout)
+        
     def get_secrets(self):
         pass
             # try:
