@@ -86,8 +86,6 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
         
-
-        
         # Create a VPC network
         network = gcp.compute.Network(f'{self.name}-vpc',
                                       auto_create_subnetworks=False, # We have more control over the network topology when this is False
@@ -109,7 +107,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
-            ports=["22", "80", "443"],
+            ports=["22", "80", "443", "8000"],
         )], source_tags = self.source_tags
             )   
         
@@ -128,7 +126,8 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # pulumi.export('tower_yml', tower_yml_version.secret_data)
         # pulumi.export('docker_creds', docker_creds_version.secret_data)
         
-        # TODO: sed is using the mac version of sed need to replace that with linux
+        #Replace tower.env files here
+        # TODO: sed is using the mac version of sed need to replace that with linux.
         # https://stackoverflow.com/questions/4247068/sed-command-with-i-option-failing-on-mac-but-works-on-linux
         populate_tower_files_script = f"""
         #!/bin/bash
@@ -140,7 +139,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         config_file="./tower.env" 
         if [ -f "$config_file" ]; then
             # Replace the TOWER_SERVER_URL value
-            sed -i '' "s|TOWER_SERVER_URL=.*|TOWER_SERVER_URL=http://$STATIC_IP|" "$config_file"
+            sed -i '' "s|TOWER_SERVER_URL=.*|TOWER_SERVER_URL=http://$STATIC_IP:8000|" "$config_file"
             echo "TOWER_SERVER_URL replaced with: http://$STATIC_IP"
         else
             echo "Config file not found: $config_file"
@@ -196,14 +195,27 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         #     print(f'Error:{e}')
             
         # A simple bash script that will run when the webserver is initalized
+        print(docker_creds_version.secret_data)
         startup_script = f"""#!/bin/bash
-        
+       
+        sudo apt-get -y update 
+        sudo apt-get -y install jq
+               
         BUCKET_NAME="{temp_bucket_name}"
         DOCKER_COMPOSE="docker-compose.yml"
         TOWER_ENV="tower.env"
         TOWER_YML="tower.yml"
         GROUNDSWELL="groundswell.env"
-
+        
+        # Extract docker credentials
+        JSON_DATA='{docker_creds_version.secret_data}'
+        ROBOT_NAME=$(echo "$JSON_DATA" | jq -r '.name')
+        SECRET_PASSWORD=$(echo "$JSON_DATA" | jq -r '.secret')
+        # Display the extracted values
+        echo "JSON DATA: $JSON_DATA"
+        echo "Robot Name: $ROBOT_NAME"
+        echo "Secret Password: $SECRET_PASSWORD"
+        
         # Set the destination directory on the VM
         DESTINATION_DIR="/home/seqera"
 
@@ -232,11 +244,14 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # Install Docker
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         
-        #cd /home/seqera 
-        #docker compose up -d 
+        docker login -u $ROBOT_NAME -p $SECRET_PASSWORD cr.seqera.io
         
-        echo "Hello, Seqera!" > index.html
-        nohup python -m SimpleHTTPServer 80 &"""
+        cd /home/seqera 
+        docker compose up -d 
+        
+        # echo "Hello, Seqera!" > index.html
+        # nohup python -m SimpleHTTPServer 80 &
+        """
 
         
         compute_instance = compute.Instance(
