@@ -17,7 +17,7 @@ class PulumiGCPInterface():
     def pulumi_program(self):
         pass 
     
-    def get_secrets(self):
+    def run_sql_commands(self, instance_name: str):
         pass
 
 class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
@@ -114,10 +114,15 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # Create a static IP address.
         static_ip = gcp.compute.Address("static-ip", region="us-central1",  project=self.project_id)
 
+        # my_secret = gcp.secretmanager.get_secret_version_output(
+        #     secret=self.tower_env_secret,
+        #     secret_version="latest"  # using "latest" to fetch the newest version
+        # )
         
         # Get secrets from secret manager 
         tower_env_version = gcp.secretmanager.get_secret_version(secret=self.tower_env_secret, project=self.project_id)
-        tower_yml_version = gcp.secretmanager.get_secret_version(secret=self.tower_yaml_secret, project=self.project_id)
+
+        #tower_yml_version = gcp.secretmanager.get_secret_version(secret=self.tower_yaml_secret, project=self.project_id)
         groundswell_version = gcp.secretmanager.get_secret_version(secret=self.groundswell_secret, project=self.project_id)
         docker_creds_version = gcp.secretmanager.get_secret_version(secret=self.harbor_creds, project=self.project_id)
 
@@ -132,7 +137,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         populate_tower_files_script = f"""
         #!/bin/bash
         echo "{tower_env_version.secret_data}" | tee tower.env
-        echo "{tower_yml_version.secret_data}" | tee tower.yml
+        #echo "tower_yml_version.secret_data" | tee tower.yml
         echo "{groundswell_version.secret_data}" | tee groundswell.env
         
         # Check if the file exists        
@@ -168,32 +173,28 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                         bucket=temp_bucket.name,
                                         source=pulumi.FileAsset(docker_compose),
                                         name='docker-compose.yml',
-                                        content_type='application/x-yaml')
+                                        content_type='application/x-yaml',
+                                        opts=pulumi.ResourceOptions(depends_on=[populate_tower_files]))
             
             tower_env_upload = gcp.storage.BucketObject('tower-env',
                                         bucket=temp_bucket.name,
                                         name='tower.env',
-                                        source=pulumi.FileAsset(tower_env))
+                                        source=pulumi.FileAsset(tower_env),
+                                        opts=pulumi.ResourceOptions(depends_on=[populate_tower_files]))
 
             tower_yml_upload = gcp.storage.BucketObject('tower-yml',
                                         bucket=temp_bucket.name,
                                         source=pulumi.FileAsset(tower_yml),
                                         name='tower.yml',
-                                        content_type='application/x-yaml')
+                                        content_type='application/x-yaml',
+                                        opts=pulumi.ResourceOptions(depends_on=[populate_tower_files]))
             
             groundswell_upload = gcp.storage.BucketObject('groundswell',
                                         bucket=temp_bucket.name,
                                         name='groundswell.env',
-                                        source=pulumi.FileAsset(groundswell_yml))
-        
-        # try:
-        #     file_upload = self.upload_to_gcp_bucket(file_path=docker_compose, bucket_name=temp_bucket_name)
-        #     file_upload = self.upload_to_gcp_bucket(file_path=tower_env, bucket_name=temp_bucket_name)
-        #     file_upload = self.upload_to_gcp_bucket(file_path=tower_yml, bucket_name=temp_bucket_name)
-        #     file_upload = self.upload_to_gcp_bucket(file_path=groundswell_yml, bucket_name=temp_bucket_name)
-        # except Exception as e:
-        #     print(f'Error:{e}')
-            
+                                        source=pulumi.FileAsset(groundswell_yml),
+                                        opts=pulumi.ResourceOptions(depends_on=[populate_tower_files]))
+                    
         # A simple bash script that will run when the webserver is initalized
         print(docker_creds_version.secret_data)
         startup_script = f"""#!/bin/bash
@@ -244,6 +245,8 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # Install Docker
         sudo apt-get -y install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         
+        service docker start
+        
         docker login -u $ROBOT_NAME -p $SECRET_PASSWORD cr.seqera.io
         
         cd /home/seqera 
@@ -252,8 +255,21 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # echo "Hello, Seqera!" > index.html
         # nohup python -m SimpleHTTPServer 80 &
         """
-
+        # Create a Cloud SQL instance
+        # cloud_sql_instance = gcp.sql.DatabaseInstance(f'{self.name}-sql',
+        #                                             database_version="MYSQL_8_0",
+        #                                             #region=self.region,
+        #                                             settings=gcp.sql.DatabaseInstanceSettingsArgs(
+        #                                                 tier="db-f1-micro",
+        #                                                 ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
+        #                                                     private_network=subnet.network
+        #                                                 )
+        #                                             ))
         
+        # # When the Cloud SQL instance is created, call the function run_sql_commands
+        # cloud_sql_instance.name.apply(self.run_sql_commands)
+        
+        #Create compute engine instance
         compute_instance = compute.Instance(
             self.instance_name,
             project = self.project_id,
@@ -277,6 +293,7 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
             ))
         
+        
         # Export the bucket's URL
         pulumi.export('network_id', network.id)
         pulumi.export('bucket_url', bucket.url)
@@ -288,28 +305,6 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         pulumi.export('subnetwork_id', subnet.id)
         pulumi.export('config files populate', populate_tower_files.stdout)
         
-    def get_secrets(self):
+    def run_sql_commands(self, instance_name: str):
         pass
-            # try:
-            #     # Create the Secret Manager client
-            #     client = secretmanager.SecretManagerServiceClient()
-
-            #     # Build the secret name
-            #     secret_name = f"projects/{self.project_id}/secrets/{secret_id}/versions/{version_id}"
-
-            #     # Access the secret version
-            #     response = client.access_secret_version(name=secret_name)
-
-            #     # Get the secret data
-            #     secret_data = response.payload.data.decode("UTF-8")
-
-            #     return secret_data
-
-            # except NotFound:
-            #     raise ValueError(f"Secret '{secret_id}' not found in project '{project_id}'.")
-
-            # except Forbidden:
-            #     raise PermissionError(f"Permission denied. Ensure that the service account has access to the secret.")
-
-            # except Exception as e:
-            #     raise RuntimeError(f"Error fetching secret: {e}")
+    
