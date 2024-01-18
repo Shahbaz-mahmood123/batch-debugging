@@ -20,7 +20,7 @@ class PulumiGCPInterface():
     def run_sql_commands(self, instance_name: str):
         pass
 
-class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
+class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
     def __init__(self, project_id: str, location: str, name: str, region:str, 
                 zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
@@ -107,9 +107,23 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         network=network.self_link,
         allows=[compute.FirewallAllowArgs(
             protocol="tcp",
-            ports=["22", "80", "443", "8000"],
+            ports=["22", "8000"],
         )], source_tags = self.source_tags
             )   
+        
+                # Create a Cloud SQL instance
+        cloud_sql_instance = gcp.sql.DatabaseInstance(f'{self.name}-sql',
+                                                    database_version="MYSQL_8_0",
+                                                    #region=self.region,
+                                                    settings=gcp.sql.DatabaseInstanceSettingsArgs(
+                                                        tier="db-f1-micro",
+                                                        ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
+                                                            private_network=subnet.network
+                                                        )
+                                                    ))
+
+        # When the Cloud SQL instance is created, call the function run_sql_commands
+        cloud_sql_instance.name.apply(self.run_sql_commands)
         
         # Create a static IP address.
         static_ip = gcp.compute.Address("static-ip", region="us-central1",  project=self.project_id)
@@ -255,19 +269,6 @@ class PulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # echo "Hello, Seqera!" > index.html
         # nohup python -m SimpleHTTPServer 80 &
         """
-        # Create a Cloud SQL instance
-        # cloud_sql_instance = gcp.sql.DatabaseInstance(f'{self.name}-sql',
-        #                                             database_version="MYSQL_8_0",
-        #                                             #region=self.region,
-        #                                             settings=gcp.sql.DatabaseInstanceSettingsArgs(
-        #                                                 tier="db-f1-micro",
-        #                                                 ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
-        #                                                     private_network=subnet.network
-        #                                                 )
-        #                                             ))
-        
-        # # When the Cloud SQL instance is created, call the function run_sql_commands
-        # cloud_sql_instance.name.apply(self.run_sql_commands)
         
         #Create compute engine instance
         compute_instance = compute.Instance(

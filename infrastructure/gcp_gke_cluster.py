@@ -62,6 +62,8 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
             location=gke_cluster.location,
             cluster=gke_cluster.name,
             initial_node_count=1,
+            network = network.id,
+            subnetwork=subnet.id,
             node_config=gcp.container.NodePoolNodeConfigArgs(
                 machine_type="n1-standard-1", # Specify the machine type for the nodes.
             ),
