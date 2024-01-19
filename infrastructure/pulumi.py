@@ -34,6 +34,8 @@ class PulumiExecution(PulumiExecutionInterface):
         self.project_settings =  automation.ProjectSettings(
             name=self.project_id,
             runtime=self.runtime,
+            ##TODO: Use other backend options for example gcp cloud storage, s3 etc.
+            #https://www.pulumi.com/docs/cli/commands/pulumi_login/
             backend=ProjectBackend(url=f"file://{self.work_dir}")
         )
         self.pulumi_program = pulumi_program
