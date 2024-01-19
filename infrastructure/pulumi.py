@@ -4,7 +4,7 @@ import pulumi
 import pulumi_gcp as gcp
 from pulumi import automation 
 from pulumi.automation import LocalWorkspace, LocalWorkspaceOptions, ProjectBackend
-from infrastructure.gcp_compute_engine import PulumiInfraConfig
+from infrastructure.pulumi_infra_config import PulumiInfraConfig
 
 
 class PulumiExecutionInterface():
@@ -28,15 +28,15 @@ class PulumiExecution(PulumiExecutionInterface):
         self.runtime = 'python'
         self.stack_name = stack_name
         self.work_dir = work_dir
-        #backend_url = ProjectBackend(f'file://{work_dir}')
+        #Not idea why but setting the backendurl like this makes pulumi prompt for the access token...
+        #backend_url = self.work_dir
         
         self.project_settings =  automation.ProjectSettings(
             name=self.project_id,
             runtime=self.runtime,
-            #backend=backend_url
+            backend=ProjectBackend(url=f"file://{self.work_dir}")
         )
         self.pulumi_program = pulumi_program
-        
         self.stack = automation.create_or_select_stack(stack_name=self.stack_name,
                             project_name=self.project_id,
                             program=self.pulumi_program.pulumi_program,
@@ -46,7 +46,7 @@ class PulumiExecution(PulumiExecutionInterface):
                                         env_vars = {'PULUMI_CONFIG_PASSPHRASE': self.stack_name},
                                         work_dir=self.work_dir,
                                         project_settings=self.project_settings))
-        
+  
         self.stack.workspace.install_plugin("gcp", "v7.3.1")
         
     def execute(self):

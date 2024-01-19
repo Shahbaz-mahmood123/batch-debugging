@@ -28,8 +28,6 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
                                       auto_create_subnetworks=False, # We have more control over the network topology when this is False
                                       project = self.project_id)
         
-        pulumi.export('network_id', network.id)
-
         # Create a GCP subnet
         subnet = gcp.compute.Subnetwork(f'{self.name}-subnet',
                                 ip_cidr_range="10.2.0.0/16",
@@ -75,6 +73,8 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
                 auto_repair=True,
                 auto_upgrade=True
             ))
+        
+        pulumi.export('network_id', network.id)
         # Export the Cluster Name
         pulumi.export("cluster_name", gke_cluster.name)
         # Export the Cluster Endpoint
