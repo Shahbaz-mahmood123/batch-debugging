@@ -23,7 +23,7 @@ class PulumiExecutionInterface():
     
 class PulumiExecution(PulumiExecutionInterface):
     
-    def __init__(self,project_id: str, stack_name: str, work_dir: str, pulumi_program: PulumiInfraConfig) -> None:
+    def __init__(self,project_id: str, stack_name: str, work_dir: str, infra: PulumiInfraConfig) -> None:
         self.project_id = project_id or os.getenv("GCP_PROJECT_ID")
         self.runtime = 'python'
         self.stack_name = stack_name
@@ -38,10 +38,10 @@ class PulumiExecution(PulumiExecutionInterface):
             #https://www.pulumi.com/docs/cli/commands/pulumi_login/
             backend=ProjectBackend(url=f"file://{self.work_dir}")
         )
-        self.pulumi_program = pulumi_program
+        self.pulumi_program = infra.pulumi_program
         self.stack = automation.create_or_select_stack(stack_name=self.stack_name,
                             project_name=self.project_id,
-                            program=self.pulumi_program.pulumi_program,
+                            program=self.pulumi_program,
                             opts=LocalWorkspaceOptions(
                                         #secrets_provider=SECRET_PROVIDER,
                                         #The PULUMI_CONFIG_PASSPHRASE since pulumi stack is encrypted by default
