@@ -7,8 +7,18 @@ zone: us-central1-a
 region: us-central1
 cluster_name: shahbaz-pulumi
 cluster_type: standard
-min_node_count: 1
-max_node_count: 2
 nodes:
-
-  
+  name: shahbaz-pulumi
+  initial_node_count: 1
+  machine_type: n1-standard-1
+  disk_size_gb: int
+  preemptible: false
+  oauth_scopes: List[str]
+  tags: List[str]
+  labels: dict
+  taints: Optional[List[Taint]]
+  auto_repair: false
+  auto_upgrade: true
+  enabled_autoscaling: false
+  min_node_count: 1
+  max_node_count: 1

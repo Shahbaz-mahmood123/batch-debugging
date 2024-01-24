@@ -1,7 +1,16 @@
+from pydantic import BaseModel
+
 import pulumi
 import pulumi_gcp as gcp 
-from pulumi_infra_config import PulumiInfraConfig
 
+from .pulumi_infra_config import PulumiInfraConfig
+from .pulumi_config import PulumiGKEConfig
+
+# Pydantic model for Node Pool Management
+class Management(BaseModel):
+    autoRepair: bool
+    autoUpgrade: bool
+    
 class PulumiGKEInterface():
     
     def get_secrets(self):
@@ -9,17 +18,15 @@ class PulumiGKEInterface():
 
 class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
     
-    def __init__(self, project_id: str, name: str, region:str , zone: str, cluster_name: str, cluster_type: str, nodes: dict,
-                 min_node_count: int, max_node_count: int) -> None:
-        self.project_id = project_id 
-        self.name = name
-        self.region = region 
-        self.zone = zone
-        self.cluster_name = cluster_name
-        self.cluster_type = cluster_type
-        self.min_node_count = min_node_count
-        self.min_node_count = max_node_count
-        self.nodes = nodes 
+    def __init__(self, config: PulumiGKEConfig) -> None:
+        self.project_id = config.project_id 
+        self.name = config.name
+        self.region = config.region 
+        self.zone = config.zone
+        self.cluster_name = config.cluster_name
+        self.cluster_type = config.cluster_type
+        self.nodes = config.nodes 
+
         
     def pulumi_program(self):        
         
@@ -50,28 +57,31 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
                     "https://www.googleapis.com/auth/monitoring"
                 ],
             ),
+            initial_node_count = 1,
             remove_default_node_pool=True,
             # Define the location for the cluster
-            location=self.region
+            location=self.region,
+            project = self.project_id
         )
 
         # Create a custom node pool attached to the GKE cluster created above.
-        custom_node_pool = gcp.container.NodePool("my-custom-node-pool",
+        custom_node_pool = gcp.container.NodePool(self.nodes.name,
             location=gke_cluster.location,
             cluster=gke_cluster.name,
-            initial_node_count=1,
-            network = network.id,
-            subnetwork=subnet.id,
+            initial_node_count=self.nodes.initial_node_count,
+            project = self.project_id,
+            # network = network.id,
+            # subnetwork=subnet.id,
             node_config=gcp.container.NodePoolNodeConfigArgs(
-                machine_type="n1-standard-1", # Specify the machine type for the nodes.
+                machine_type=self.nodes.machine_type, # Specify the machine type for the nodes.
             ),
             autoscaling=gcp.container.NodePoolAutoscalingArgs(
-                min_node_count=self.min_node_count,
-                max_node_count=self.max_node_count,
+                min_node_count=self.nodes.min_node_count,
+                max_node_count=self.nodes.max_node_count,
             ),
             management=gcp.container.NodePoolManagementArgs(
-                auto_repair=True,
-                auto_upgrade=True
+                auto_repair=self.nodes.auto_repair,
+                auto_upgrade=self.nodes.auto_upgrade
             ))
         
         pulumi.export('network_id', network.id)
