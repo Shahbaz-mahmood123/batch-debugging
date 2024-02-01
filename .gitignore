@@ -3,6 +3,7 @@ docker-compose.yml
 groundswell.env
 tower.env
 tower.yml
+.pulumi
 
 
 random-files/
