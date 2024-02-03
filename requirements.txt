@@ -8,5 +8,6 @@ attrs==23.1.0
 google-cloud-batch==0.17.5
 google-cloud-core==2.4.1
 google-cloud-storage==2.14.0
+pulumi_kubernetes==4.7.1
 # google-api-core==2.11.1
 # google-auth==2.25.2

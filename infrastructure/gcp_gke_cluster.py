@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 import pulumi
 import pulumi_gcp as gcp 
+import pulumi_kubernetes as k8s
 
 from .pulumi_infra_config import PulumiInfraConfig
 from .pulumi_config import PulumiGKEConfig
@@ -84,6 +85,65 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
                 auto_upgrade=self.nodes.auto_upgrade
             ))
         
+        # A Kubernetes provider to apply resources to the created GKE cluster
+        k8s_provider = k8s.Provider("k8s-provider",
+            kubeconfig=gke_cluster.master_auth.apply(lambda auth: """
+        apiVersion: v1
+        clusters:
+        - cluster:
+            certificate-authority-data: {0}
+            server: https://{1}
+        name: gke-cluster
+        contexts:
+        - context:
+            cluster: gke-cluster
+            user: gke-cluster
+        name: gke-cluster
+        current-context: gke-cluster
+        kind: Config
+        preferences: {{}}
+        users:
+        - name: gke-cluster
+        user:
+            auth-provider:
+            config:
+                cmd-args: config config-helper --format=json
+                cmd-path: gcloud
+                expiry-key: '{{.credential.token_expiry}}'
+                token-key: '{{.credential.access_token}}'
+            name: gcp
+            """.format(auth.cluster_ca_certificate, auth.endpoint)))
+        
+        tower_launcher_manifest = k8s.yaml.ConfigFile("k8s-manifest", file="./tower-launcher.yaml")
+        
+        # Create a new GCP service account
+        service_account = gcp.serviceaccount.Account(f"{self.name}-sa]",
+                                                     account_id=f"pulumiserviceaccount",
+                                                     display_name=f"{self.name} Service Account",
+                                                     project = self.project_id)
+
+        # Define the roles you want to assign to the service account
+        roles_list = ["roles/container.admin"]
+
+        # Assign the roles to the service account
+        for role in roles_list:
+            iam_binding = gcp.serviceaccount.IAMBinding(f"service-account-iam-{role}",
+                                                        service_account_id=service_account.name,
+                                                        role=role,
+                                                        members=[f"serviceAccount:{service_account.email}"],
+                                                        project = self.project_id)
+
+        # Create a service account key
+        service_account_key = gcp.serviceaccount.Key(f"{self.name}-key]",
+                                                     service_account_id=service_account.name,
+                                                     public_key_type="TYPE_X509_PEM_FILE",
+                                                     project = self.project_id)
+
+        # Export the service account email and the path to the generated key file
+        pulumi.export("service_account_email", service_account.email)
+        
+        pulumi.export("service_account_key_path", service_account_key.private_key.apply(lambda key: key.path if key else None))
+
         pulumi.export('network_id', network.id)
         # Export the Cluster Name
         pulumi.export("cluster_name", gke_cluster.name)
@@ -91,6 +151,8 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
         pulumi.export("cluster_endpoint", gke_cluster.endpoint)
         # Export the Cluster Master Version
         pulumi.export("cluster_master_version", gke_cluster.master_version)
+        
+        #pulumi.export("resource_names", tower_launcher_manifest.urn)
             
     def get_secrets(self):
         pass
