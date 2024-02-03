@@ -1,5 +1,5 @@
 from infrastructure.pulumi import PulumiExecution
-from infrastructure.gcp_compute_engine import PulumiGCP
+from infrastructure.minimal_gcp_compute_engine import MinimalPulumiGCP
 from infrastructure.pulumi_config import PulumiGCPConfig
 
 def create_tower_deployment():
@@ -11,7 +11,7 @@ def create_tower_deployment():
     work_dir = '/Users/shahbazmahmood/workspace/pulumi-stack/'
 
     # the class that holds pulumi script for creating the pulumi script
-    pulumi_gcp = PulumiGCP(project_id=config.project_id, location=config.location, 
+    pulumi_gcp = MinimalPulumiGCP(project_id=config.project_id, location=config.location, 
                            name=config.resource_name, region=config.region, zone=config.zone , instance_name=config.instance_name,
                            tower_env_secret=config.tower_env_secret, tower_yaml_secret=config.tower_yaml_secret, 
                            harbor_creds=config.harbor_creds, groundswell_secret=config.groundswell)
