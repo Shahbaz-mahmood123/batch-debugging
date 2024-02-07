@@ -110,7 +110,7 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
             ports=["22", "8000"],
         )], source_tags = self.source_tags
             )   
-        
+
                 # Create a Cloud SQL instance
         cloud_sql_instance = gcp.sql.DatabaseInstance(f'{self.name}-sql',
                                                     database_version="MYSQL_8_0",
@@ -118,7 +118,7 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                     settings=gcp.sql.DatabaseInstanceSettingsArgs(
                                                         tier="db-f1-micro",
                                                         ip_configuration=gcp.sql.DatabaseInstanceSettingsIpConfigurationArgs(
-                                                            private_network=subnet.network
+                                                            private_network=network.id
                                                         )
                                                     ))
 
@@ -269,33 +269,82 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         # echo "Hello, Seqera!" > index.html
         # nohup python -m SimpleHTTPServer 80 &
         """
-        
-        #Create compute engine instance
-        compute_instance = compute.Instance(
-            self.instance_name,
-            project = self.project_id,
+                # Create a Compute Engine instance template
+        instance_template = gcp.compute.InstanceTemplate(
+            self.project_id,
+            f"{self.name}instance-template",
             machine_type="e2-standard-2",
-            zone = self.zone,
-            metadata_startup_script=startup_script,
-            tags = self.tags,
-            boot_disk=compute.InstanceBootDiskArgs(
-                initialize_params=compute.InstanceBootDiskInitializeParamsArgs(
-                    image="debian-12-bookworm-v20231212"
-                )
-            ),
-            network_interfaces=[compute.InstanceNetworkInterfaceArgs(
+            network_interfaces=[compute.InstanceNetworkInterfaceArgs (
                     network=network.id,
                     subnetwork = subnet.id,
                     access_configs=[compute.InstanceNetworkInterfaceAccessConfigArgs(
                         nat_ip=static_ip.address)]
             )],
-            service_account=gcp.compute.InstanceServiceAccountArgs(
+            tags = self.tags,
+            
+            disks=[gcp.compute.InstanceTemplateDiskArgs(
+                source_image="debian-12-bookworm-v20231212",
+                auto_delete=True,
+                boot=True,
+            )],
+            
+            metadata={
+                "startup-script": startup_script
+            },
+            service_account=gcp.compute.InstanceServiceAccountArgs (
                 email=service_account.email,
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
-            ))
+            )
+        )
+
+        # Create a managed instance group using the instance template
+        instance_group = gcp.compute.InstanceGroupManager(f"{self.name}instance-group",
+            base_instance_name=f"{self.name}-vm",
+            instance_template=instance_template.id,
+            zone=self.zone,
+            target_size=1,
+        )
         
+        # Create a Compute Engine instance from the instance template
+        compute_instance = gcp.compute.InstanceFromTemplate("instance-from-template",
+            name=f"{self.name}-vm",
+            zone=self.zone, # Specify the zone where to create the instance
+            source_instance_template=instance_template.id
+        )
+        # Create a health check for the load balancer
+        health_check = compute.HealthCheck(f'{self.name}-http-health-check',
+            check_interval_sec=5,
+            timeout_sec=5,
+            healthy_threshold=2,
+            unhealthy_threshold=2,
+            tcp_health_check=compute.HealthCheckTcpHealthCheckArgs(port=80))
+
+        # Create a backend service using the instance group
+        backend_service = compute.BackendService(f'{self.name}-backend-service',
+            backends=[compute.BackendServiceBackendArgs(
+                group=instance_group.name 
+            )],
+            health_checks=[health_check.self_link],
+            port_name='http',
+            protocol='HTTP',
+            timeout_sec=10)
+
+        # Create a URL map to route incoming requests to the backend service
+        url_map = compute.URLMap(f'{self.name} url-map',
+            default_service=backend_service.self_link)
+
+        # Create a target HTTP proxy to route requests to your URL map
+        target_http_proxy = compute.TargetHttpProxy(f'{self.name}-target-http-proxy',
+            url_map=url_map.self_link)
+
+        # Create a global forwarding rule to route incoming requests to the proxy
+        global_forwarding_rule = compute.GlobalForwardingRule(f'{self.name}-global-forwarding-rule',
+            target=target_http_proxy.self_link,
+            port_range='80')
+
+        # Export the external IP address of the Load Balancer
+        lb_ip = pulumi.Output.all(global_forwarding_rule.ip_address).apply(lambda args: args[0])
         
-        # Export the bucket's URL
         pulumi.export('network_id', network.id)
         pulumi.export('bucket_url', bucket.url)
         pulumi.export('temp_bucket_url', temp_bucket.url)
@@ -305,7 +354,26 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
         pulumi.export('static_ip_address', static_ip.address)
         pulumi.export('subnetwork_id', subnet.id)
         pulumi.export('config files populate', populate_tower_files.stdout)
+        pulumi.export('load_balancer_ip', lb_ip)
         
     def run_sql_commands(self, instance_name: str):
         pass
+    
+    def check_resource_exists(resource_type, resource_name, **kwargs):
+        """
+        Checks if the specified Pulumi resource exists.
+
+        :param resource_type: The Pulumi resource type (e.g., aws.s3.Bucket).
+        :param resource_name: The name of the resource to check.
+        :param kwargs: Additional arguments required to identify the resource.
+        :return: True if the resource exists, False otherwise.
+        """
+        try:
+            # Try to get the resource with the provided details.
+            resource = resource_type.get(resource_name, resource_name, **kwargs)
+            return True if resource else False
+        except pulumi.ResourceError:
+            # If there's an exception, it means the resource does not exist.
+            return False
+
     
