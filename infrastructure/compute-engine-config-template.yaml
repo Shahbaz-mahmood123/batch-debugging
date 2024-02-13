@@ -1,7 +1,8 @@
 project_id: $GCP-PORJECT-ID
-stack: shahbaz-dev
-provider: gcp
-type: minimal
+stack: 
+  stack: shahbaz-dev
+  provider: gcp
+  type: minimal
 location: us-central1
 name: shahbaz-pulumi-test
 zone: us-central1-a
