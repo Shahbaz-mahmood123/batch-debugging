@@ -86,33 +86,36 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
             ))
         
         # A Kubernetes provider to apply resources to the created GKE cluster
-        k8s_provider = k8s.Provider("k8s-provider",
-            kubeconfig=gke_cluster.master_auth.apply(lambda auth: """
-        apiVersion: v1
+        # Create a Kubernetes provider to use the cluster kubeconfig
+        k8s_info = pulumi.Output.all(gke_cluster.name, gke_cluster.endpoint, gke_cluster.master_auth)
+        k8s_config = k8s_info.apply(
+            lambda info: """apiVersion: v1
         clusters:
         - cluster:
             certificate-authority-data: {0}
             server: https://{1}
-        name: gke-cluster
+        name: {2}
         contexts:
         - context:
-            cluster: gke-cluster
-            user: gke-cluster
-        name: gke-cluster
-        current-context: gke-cluster
+            cluster: {2}
+            user: {2}
+        name: {2}
+        current-context: {2}
         kind: Config
         preferences: {{}}
         users:
-        - name: gke-cluster
+        - name: {2}
         user:
-            auth-provider:
-            config:
-                cmd-args: config config-helper --format=json
-                cmd-path: gcloud
-                expiry-key: '{{.credential.token_expiry}}'
-                token-key: '{{.credential.access_token}}'
-            name: gcp
-            """.format(auth.cluster_ca_certificate, auth.endpoint)))
+            exec:
+            apiVersion: client.authentication.k8s.io/v1beta1
+            command: gke-gcloud-auth-plugin
+            installHint: Install gke-gcloud-auth-plugin for use with kubectl by following
+                https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+            provideClusterInfo: true
+        """.format(info[2]['cluster_ca_certificate'], info[1], '{0}_{1}_{2}'.format(self.project, self.zone, info[0])))
+
+        # Make a Kubernetes provider instance that uses our cluster from above.
+        k8s_provider = k8s.Provider('gke_k8s', kubeconfig=k8s_config)
         
         tower_launcher_manifest = k8s.yaml.ConfigFile("k8s-manifest", file="./tower-launcher.yaml")
         
@@ -130,14 +133,13 @@ class PulumiGKE(PulumiInfraConfig, PulumiGKEInterface):
             iam_binding = gcp.serviceaccount.IAMBinding(f"service-account-iam-{role}",
                                                         service_account_id=service_account.name,
                                                         role=role,
-                                                        members=[f"serviceAccount:{service_account.email}"],
-                                                        project = self.project_id)
+                                                        members=[f"serviceAccount:{service_account.email}"]
+                                                        )
 
         # Create a service account key
         service_account_key = gcp.serviceaccount.Key(f"{self.name}-key]",
-                                                     service_account_id=service_account.name,
-                                                     public_key_type="TYPE_X509_PEM_FILE",
-                                                     project = self.project_id)
+                                                     service_account_id=service_account.name
+                                                     )
 
         # Export the service account email and the path to the generated key file
         pulumi.export("service_account_email", service_account.email)
