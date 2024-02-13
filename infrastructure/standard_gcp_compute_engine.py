@@ -10,6 +10,7 @@ from google.cloud import storage
 from google.cloud.exceptions import NotFound, Forbidden
 
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
+from infrastructure.pulumi_config import StandardPulumiGCPConfig
 from infrastructure.seqera_platform import SeqeraGCPConfig
 
 class PulumiGCPInterface():
@@ -22,53 +23,33 @@ class PulumiGCPInterface():
 
 class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
-    def __init__(self, project_id: str, location: str, name: str, region:str, 
-                zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
-                groundswell_secret: str, source_ranges: dict, tags: dict, source_tags: dict) -> None:
-        self.project_id = project_id 
-        self.location = location
-        self.name = name
-        self.region = region 
-        self.zone = zone
-        self.instance_name = instance_name
-        self.tower_env_secret = tower_env_secret
-        self.tower_yaml_secret = tower_yaml_secret
-        self.harbor_creds = harbor_creds
-        self.groundswell_secret = groundswell_secret
-        self.source_ranges = source_ranges
-        self.tags = tags
-        self.source_tags = source_tags
-        
-    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
-        """Uploads a file to a GCP bucket.
-        Args:
-            file_path (str): The local path of the file to be uploaded.
-            bucket_name (str): The name of the GCP bucket to upload the file to.
-        """
-    
-        client = storage.Client()
-
-        bucket = client.get_bucket(bucket_name)
-
-        file_name = file_path.split("/")[-1]
-        
-        blob = bucket.blob(file_name)
-
-        blob.upload_from_filename(file_path)
-
-        print(f"File {file_name} uploaded to GCP bucket {bucket_name}.")
+    def __init__(self, config: StandardPulumiGCPConfig) -> None:
+        self.project_id = config.project_id 
+        self.location = config.location
+        self.name = config.name
+        self.region = config.region 
+        self.zone = config.zone
+        self.instance_name = config.instance_name
+        self.tower_env_secret = config.secrets.tower_env_secret
+        self.tower_yaml_secret = config.secrets.tower_yaml_secret
+        self.harbor_creds = config.secrets.harbor_creds
+        self.groundswell_secret = config.secrets.groundswell_secret
+        self.source_ranges = config.network.source_ranges
+        self.tags = config.network.tags
+        self.source_tags = config.compute_engine.tags
     
     def pulumi_program(self):
 
         # Creates a GCP storage bucket with the specified name
 
+        self.check_resource_exists()
+        
         bucket = gcp.storage.Bucket(self.name, name=self.name, location=self.location, project=self.project_id)
         
         temp_bucket_name = "temp-seqera-bucket"
         
         temp_bucket = gcp.storage.Bucket(temp_bucket_name, name=temp_bucket_name, location=self.location, project=self.project_id, force_destroy=True)
                     
-                
         service_account = gcp.serviceaccount.Account("seqera-pulumi-sa",
                                              account_id="seqera-pulumi-sa",
                                              display_name="Seqera Pulumi SA", 
@@ -85,7 +66,6 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                                         bucket=temp_bucket.name,
                                                         role="roles/storage.admin",
                                                         members=[pulumi.Output.concat("serviceAccount:", service_account.email)])
-        
         # Create a VPC network
         network = gcp.compute.Network(f'{self.name}-vpc',
                                       auto_create_subnetworks=False, # We have more control over the network topology when this is False
@@ -359,7 +339,7 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     def run_sql_commands(self, instance_name: str):
         pass
     
-    def check_resource_exists(resource_type, resource_name, **kwargs):
+    def check_resource_exists(resource_type: str, resource_name: str, **kwargs):
         """
         Checks if the specified Pulumi resource exists.
 

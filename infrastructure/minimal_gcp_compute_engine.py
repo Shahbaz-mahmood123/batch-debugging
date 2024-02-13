@@ -10,6 +10,7 @@ from google.cloud import storage
 from google.cloud.exceptions import NotFound, Forbidden
 
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
+from infrastructure.pulumi_config import MinimalPulumiGCPConfig
 from infrastructure.seqera_platform import SeqeraGCPConfig
 
 class PulumiGCPInterface():
@@ -22,42 +23,22 @@ class PulumiGCPInterface():
 
 class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
-    def __init__(self, project_id: str, location: str, name: str, region:str, 
-                zone: str, instance_name: str, tower_env_secret: str, tower_yaml_secret, harbor_creds: str, 
-                groundswell_secret: str, source_ranges: dict, tags: dict, source_tags: dict) -> None:
-        self.project_id = project_id 
-        self.location = location
-        self.name = name
-        self.region = region 
-        self.zone = zone
-        self.instance_name = instance_name
-        self.tower_env_secret = tower_env_secret
-        self.tower_yaml_secret = tower_yaml_secret
-        self.harbor_creds = harbor_creds
-        self.groundswell_secret = groundswell_secret
-        self.source_ranges = source_ranges
-        self.tags = tags
-        self.source_tags = source_tags
-        
-    def upload_to_gcp_bucket(self,file_path: str, bucket_name: str ) -> None:
-        """Uploads a file to a GCP bucket.
-        Args:
-            file_path (str): The local path of the file to be uploaded.
-            bucket_name (str): The name of the GCP bucket to upload the file to.
-        """
-    
-        client = storage.Client()
+    def __init__(self, config: MinimalPulumiGCPConfig) -> None:
+        self.project_id = config.project_id 
+        self.location = config.location
+        self.name = config.name
+        self.region = config.region 
+        self.zone = config.zone
+        self.instance_name = config.instance_name
+        self.tower_env_secret = config.secrets.tower_env_secret
+        self.tower_yaml_secret = config.secrets.tower_yaml_secret
+        self.harbor_creds = config.secrets.harbor_creds
+        self.groundswell_secret = config.secrets.groundswell_secret
+        self.source_ranges = config.network.source_ranges
+        self.tags = config.network.tags
+        self.source_tags = config.compute_engine.tags
 
-        bucket = client.get_bucket(bucket_name)
-
-        file_name = file_path.split("/")[-1]
-        
-        blob = bucket.blob(file_name)
-
-        blob.upload_from_filename(file_path)
-
-        print(f"File {file_name} uploaded to GCP bucket {bucket_name}.")
-    
+            
     def pulumi_program(self):
 
         # Creates a GCP storage bucket with the specified name
