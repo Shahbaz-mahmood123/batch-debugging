@@ -52,21 +52,27 @@ class PulumiExecution(PulumiExecutionInterface):
         self.stack.workspace.install_plugin("gcp", "v7.3.1")
         
     def execute(self):
-        self.stack.up(on_output=print)
+        output = self.stack.up()
+        return output
         
     def destroy(self):
-        self.stack.destroy(on_output=print)
+        output = self.stack.destroy(on_output=print)
+        return output
         
     def preview(self):
-        self.stack.preview(on_output=print)
+        output = self.stack.preview()
+        return output
     
     def refresh(self):
-        self.stack.refresh(on_output=print)
+        output = self.stack.refresh()
+        return output
         
     def cancel(self):
-        self.stack.cancel()
+        output = self.stack.cancel()
+        return output
         
     def destroy_stack(self):
-        self.stack.destroy(on_output=print)
+        output = self.stack.destroy()
+        return output
     
         
