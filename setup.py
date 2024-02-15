@@ -23,7 +23,8 @@ setup(
         'google-cloud-batch',
         'google-cloud-storage',
         'PyYAML',
-        'google-cloud-core'
+        'google-cloud-core',
+        'pydantic'
         ],
     keywords='conversion',
     classifiers= [

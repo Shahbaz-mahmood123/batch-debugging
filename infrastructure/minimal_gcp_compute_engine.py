@@ -11,7 +11,6 @@ from google.cloud.exceptions import NotFound, Forbidden
 
 from infrastructure.pulumi_infra_config import PulumiInfraConfig
 from infrastructure.pulumi_config import MinimalPulumiGCPConfig
-from infrastructure.seqera_platform import SeqeraGCPConfig
 
 class PulumiGCPInterface():
     
