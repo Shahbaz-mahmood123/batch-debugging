@@ -56,7 +56,7 @@ class PulumiExecution(PulumiExecutionInterface):
         return output
         
     def destroy(self):
-        output = self.stack.destroy(on_output=print)
+        output = self.stack.destroy()
         return output
         
     def preview(self):
