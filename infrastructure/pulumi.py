@@ -4,8 +4,9 @@ import pulumi
 import pulumi_gcp as gcp
 from pulumi import automation 
 from pulumi.automation import LocalWorkspace, LocalWorkspaceOptions, ProjectBackend
-from infrastructure.pulumi_infra_config import PulumiInfraConfig
 
+from .pulumi_infra_config import PulumiInfraConfig
+from .models.pulumi import PreviewResult
 
 class PulumiExecutionInterface():
     
@@ -59,8 +60,9 @@ class PulumiExecution(PulumiExecutionInterface):
         output = self.stack.destroy()
         return output
         
-    def preview(self):
+    def preview(self) -> PreviewResult:
         output = self.stack.preview()
+        print(output)
         return output
     
     def refresh(self):
@@ -75,4 +77,4 @@ class PulumiExecution(PulumiExecutionInterface):
         output = self.stack.destroy()
         return output
     
-        
+    

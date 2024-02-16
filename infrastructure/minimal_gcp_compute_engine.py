@@ -176,7 +176,6 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
                                         opts=pulumi.ResourceOptions(depends_on=[populate_tower_files]))
                     
         # A simple bash script that will run when the webserver is initalized
-        print(docker_creds_version.secret_data)
         startup_script = f"""#!/bin/bash
        
         sudo apt-get -y update 
