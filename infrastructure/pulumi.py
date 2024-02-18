@@ -6,7 +6,7 @@ from pulumi import automation
 from pulumi.automation import LocalWorkspace, LocalWorkspaceOptions, ProjectBackend
 
 from .pulumi_infra_config import PulumiInfraConfig
-from .models.pulumi import PreviewResult
+from .models.pulumi import PreviewResult, UpResult, DestroyResult, RefreshResult
 
 class PulumiExecutionInterface():
     
@@ -52,20 +52,19 @@ class PulumiExecution(PulumiExecutionInterface):
   
         self.stack.workspace.install_plugin("gcp", "v7.3.1")
         
-    def execute(self):
+    def execute(self) -> UpResult:
         output = self.stack.up()
         return output
         
-    def destroy(self):
+    def destroy(self) -> DestroyResult:
         output = self.stack.destroy()
         return output
         
     def preview(self) -> PreviewResult:
         output = self.stack.preview()
-        print(output)
         return output
     
-    def refresh(self):
+    def refresh(self) -> RefreshResult:
         output = self.stack.refresh()
         return output
         
@@ -73,7 +72,7 @@ class PulumiExecution(PulumiExecutionInterface):
         output = self.stack.cancel()
         return output
         
-    def destroy_stack(self):
+    def destroy_stack(self) -> DestroyResult:
         output = self.stack.destroy()
         return output
     
