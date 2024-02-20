@@ -40,8 +40,6 @@ class MinimalPulumiGCP(PulumiInfraConfig, PulumiGCPInterface):
     
     def pulumi_program(self):
 
-        # Creates a GCP storage bucket with the specified name
-
         self.check_resource_exists()
         
         bucket = gcp.storage.Bucket(self.name, name=self.name, location=self.location, project=self.project_id)

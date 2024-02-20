@@ -1,4 +1,6 @@
-from typing import Optional, Dict
+import datetime
+from typing import Any, Optional, Dict, List
+
 from pydantic import BaseModel
 
 class Diagnostics(BaseModel):
@@ -21,3 +23,31 @@ class PreviewResult(BaseModel):
     change_summary: Dict[str, int]
     diagnostics: Optional[Dict[str, Diagnostics]]
     outputs: Optional[Outputs]
+
+class UpdateSummary(BaseModel):
+    result: str
+    version: int
+    start_time: str
+    end_time: str
+    kind: str
+    message: str
+    environment: Dict[str, str]
+    resource_changes: Dict[str, int]
+    config: Dict[str, Any]
+    Deployment: Any
+
+class DestroyResult(BaseModel):
+    stdout: str
+    stderr: str
+    summary: UpdateSummary
+    
+class UpResult(BaseModel):
+    stdout: str
+    stderr: str
+    outputs: Dict[str, Any]
+    summary: UpdateSummary
+
+class RefreshResult(BaseModel):
+    stdout: str
+    stderr: str
+    summary: UpdateSummary
