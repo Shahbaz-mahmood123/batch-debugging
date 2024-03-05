@@ -1,4 +1,6 @@
 import boto3
+from typing import List, Optional, Union
+from pydantic import BaseModel, ValidationError
 
 class AWSBatchClientWrapperInterface:
     def get_job_queue(self, queue_name: str) -> dict:
@@ -34,6 +36,7 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
         """
         try:
             response = self.batch_client.describe_job_queues(jobQueues=[queue_name])
+            print(response)
             return response
         except Exception as e:
             return {"ERROR": e}
@@ -88,4 +91,54 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             return ["ERROR", e] 
         return job_response
             
-        
+    def get_all_jobs(self, job_queue_id: str, next_token=None) -> Union[str, JobSummaryListResponse]:
+        """ Get the five most recent jobs from a specified job queue. 
+
+        Args:
+            job_queue_id (str): The job queue name or fully qualified AWS arn.
+            next_token (str, optional): Token for pagination.
+        Returns:
+            Union[str, JobSummaryListResponse]: Returns 5 most recent jobs or error message.
+        """
+        try:
+            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, maxResults=5, jobStatus='SUBMITTED'|'PENDING'|'RUNNABLE'|'STARTING'|'RUNNING'|'SUCCEEDED'|'FAILED')
+            job_summary_list = job_response.get("jobSummaryList", [])
+            if job_summary_list == []:
+                return "No jobs found"
+            return JobSummaryListResponse(jobSummaryList=job_summary_list, nextToken=job_response.get("nextToken"))
+        except ValidationError as e:
+            return f"Validation Error: {e}"
+        except Exception as e:
+            return f"ERROR: {e}"
+    
+
+class Container(BaseModel):
+    exitCode: int
+    reason: str
+
+class ArrayProperties(BaseModel):
+    size: int
+    index: int
+
+class NodeProperties(BaseModel):
+    isMainNode: bool
+    numNodes: int
+    nodeIndex: int
+
+class JobSummary(BaseModel):
+    jobArn: str
+    jobId: str
+    jobName: str
+    createdAt: int
+    status: str
+    statusReason: Optional[str]
+    startedAt: Optional[int]
+    stoppedAt: Optional[int]
+    container: Optional[Container]
+    arrayProperties: Optional[ArrayProperties]
+    nodeProperties: Optional[NodeProperties]
+    jobDefinition: str
+
+class JobSummaryListResponse(BaseModel):
+    jobSummaryList: List[JobSummary]
+    nextToken: Optional[str]
