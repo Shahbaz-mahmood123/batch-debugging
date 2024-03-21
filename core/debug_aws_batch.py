@@ -206,8 +206,15 @@ class DebugAWSBatch(DebugAWSBatchInterface):
         """    
         try:
             job_queue_response = self.aws_batch_client_wrapper.get_job_queue(job_queue_id)
+            print(job_queue_response)
             job_queue_info = job_queue_response.get('jobQueues', [])
+            if not job_queue_info:
+                
+                return "Job Queue not Found, please validate the job queue exists or you are in the correct region"
+            
+            print(job_queue_info)
             if job_queue_info:
+                
                 job_queue_info = job_queue_info[0]  
                 arn = job_queue_info.get('jobQueueArn', '')
                 state = job_queue_info.get('state', '')
@@ -238,7 +245,7 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 state = ce_info.get('state', '')
                 status = ce_info.get('status', '')
                 arn = ce_info.get('computeEnvironmentArn', '')
-                status_and_state = {'computeEnviornmentArn': arn, "computeEnviornmentState": state, "computeEnviornmnetStatus0": status }
+                status_and_state = {'computeEnviornmentArn': arn, "computeEnviornmentState": state, "computeEnviornmnetStatus": status }
                 return status_and_state
         except Exception as e:
             return str(e)
@@ -367,7 +374,16 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                 events = self.cloudwatch_client.get_log_events(log_stream_name=log_stream_arn, log_group_name="tower/forge")
                 if events is None:
                     return {"No logs found with the matching compute instance ID": events}
-                return events                    
+                return events        
+    
+    def get_all_jobs(self, job_queue_id: str):
+        if job_queue_id:
+            try:
+                jobs = self.aws_batch_client_wrapper.get_all_jobs(job_queue_id=job_queue_id)
+                return jobs
+            except Exception as e:
+                return "An error occured fetching jobs" + e
+                    
              
             
     
