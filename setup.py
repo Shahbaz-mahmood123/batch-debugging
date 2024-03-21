@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.6'
+VERSION = '0.1.7'
 DESCRIPTION = 'A SDK that helps debug batch compute enviornments in AWS, GCP and Azure and Kubernetes'
 LONG_DESCRIPTION = 'A package that makes it easier to debug issues with batch compute enviornments in GCP, AWS and Azure'
 
