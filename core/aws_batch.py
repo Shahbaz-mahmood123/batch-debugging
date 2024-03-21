@@ -1,6 +1,8 @@
-import boto3
-from typing import List, Optional, Union
-from pydantic import BaseModel, ValidationError
+from typing import Union
+import datetime 
+
+from pydantic import ValidationError
+from .models.aws_batch import JobSummaryListResponse
 
 class AWSBatchClientWrapperInterface:
     def get_job_queue(self, queue_name: str) -> dict:
@@ -101,7 +103,8 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             Union[str, JobSummaryListResponse]: Returns 5 most recent jobs or error message.
         """
         try:
-            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, maxResults=5, jobStatus='SUBMITTED'|'PENDING'|'RUNNABLE'|'STARTING'|'RUNNING'|'SUCCEEDED'|'FAILED')
+            job_response = self.batch_client.list_jobs(jobQueue=job_queue_id, jobStatus="SUCCEEDED")
+            print(job_response)
             job_summary_list = job_response.get("jobSummaryList", [])
             if job_summary_list == []:
                 return "No jobs found"
@@ -112,33 +115,3 @@ class AWSBatchClientWrapper(AWSBatchClientWrapperInterface):
             return f"ERROR: {e}"
     
 
-class Container(BaseModel):
-    exitCode: int
-    reason: str
-
-class ArrayProperties(BaseModel):
-    size: int
-    index: int
-
-class NodeProperties(BaseModel):
-    isMainNode: bool
-    numNodes: int
-    nodeIndex: int
-
-class JobSummary(BaseModel):
-    jobArn: str
-    jobId: str
-    jobName: str
-    createdAt: int
-    status: str
-    statusReason: Optional[str]
-    startedAt: Optional[int]
-    stoppedAt: Optional[int]
-    container: Optional[Container]
-    arrayProperties: Optional[ArrayProperties]
-    nodeProperties: Optional[NodeProperties]
-    jobDefinition: str
-
-class JobSummaryListResponse(BaseModel):
-    jobSummaryList: List[JobSummary]
-    nextToken: Optional[str]

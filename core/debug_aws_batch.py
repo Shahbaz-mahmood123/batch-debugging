@@ -376,13 +376,11 @@ class DebugAWSBatch(DebugAWSBatchInterface):
                     return {"No logs found with the matching compute instance ID": events}
                 return events        
     
-    def get_all_jobs(self, job_queue_id: str ):
-        
+    def get_all_jobs(self, job_queue_id: str):
         if job_queue_id:
             try:
                 jobs = self.aws_batch_client_wrapper.get_all_jobs(job_queue_id=job_queue_id)
-                if jobs is {}:
-                    return "No jobs found" 
+                return jobs
             except Exception as e:
                 return "An error occured fetching jobs" + e
                     
