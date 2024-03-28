@@ -1,4 +1,5 @@
 import os
+from typing import Iterable
 import uuid
 
 from google.cloud import batch_v1
@@ -7,6 +8,9 @@ class GCPBatchInterface():
     
     def create_test_job(self, job_name: str) -> batch_v1.Job:
         pass   
+    
+    def debug_batch(self):
+        pass
     
 class GCPBatch(GCPBatchInterface):
     
@@ -66,6 +70,7 @@ class GCPBatch(GCPBatchInterface):
         job.labels = {"env": "testing", "type": "container"}
         # We use Cloud Logging as it's an out of the box available option
         job.logs_policy = batch_v1.LogsPolicy()
+        
         job.logs_policy.destination = batch_v1.LogsPolicy.Destination.CLOUD_LOGGING
 
         create_request = batch_v1.CreateJobRequest()
@@ -75,3 +80,32 @@ class GCPBatch(GCPBatchInterface):
         create_request.parent = f"projects/{self.project_id}/locations/{self.region}"
 
         return self.batch_client.create_job(create_request)
+    
+    
+    def debug_batch(self):
+        #https://cloud.google.com/batch/docs/troubleshooting
+        
+        """ 
+        1. First view jobs
+        2. list job details, specifically status event fields
+        3. 
+        """
+    
+        pass
+    
+    def list_jobs(project_id: str, region: str) -> Iterable[batch_v1.Job]:
+        """
+        Get a list of all jobs defined in given region.
+
+        Args:
+            project_id: project ID or project number of the Cloud project you want to use.
+            region: name of the region hosting the jobs.
+
+        Returns:
+            An iterable collection of Job object.
+        """
+        client = batch_v1.BatchServiceClient()
+
+        return client.list_jobs(parent=f"projects/{project_id}/locations/{region}")
+
+    
